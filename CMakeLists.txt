@@ -9,6 +9,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(Boost REQUIRED)
 
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -32,17 +33,17 @@ include(GtsamMakeConfigFile)
 ###### GTSAM STUFF ENDS HER
 
 add_executable(talker src/publisher_member_function.cpp)
-ament_target_dependencies(talker rclcpp std_msgs)
+ament_target_dependencies(talker rclcpp std_msgs Boost)
 
 add_executable(listener src/subscriber_member_function.cpp)
 ament_target_dependencies(listener rclcpp std_msgs)
 
-add_executable(odometry_example src/OdometryExample.cpp)
-ament_target_dependencies(odometry_example GTSAM)
-target_link_libraries(odometry_example gtsam)
-
-add_executable(odom_node src/odom.cpp src/odom_node.cpp)
-ament_target_dependencies(odom_node nav_msgs geometry_msgs sensor_msgs tf2_ros tf2_eigen tf2_geometry_msgs)
+# add_executable(odometry_example src/OdometryExample.cpp)
+# ament_target_dependencies(odometry_example GTSAM)
+# target_link_libraries(odometry_example gtsam)
+# 
+# add_executable(odom_node src/odom.cpp src/odom_node.cpp)
+# ament_target_dependencies(odom_node nav_msgs geometry_msgs sensor_msgs tf2_ros tf2_eigen tf2_geometry_msgs)
 
 
 
@@ -50,8 +51,8 @@ ament_target_dependencies(odom_node nav_msgs geometry_msgs sensor_msgs tf2_ros t
 install(TARGETS
   talker
   listener
-  odometry_example
-  odom_node
+  #odometry_example
+  #odom_node
   DESTINATION lib/${PROJECT_NAME}
   )
 

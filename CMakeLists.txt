@@ -46,6 +46,11 @@ ament_target_dependencies(listener rclcpp std_msgs)
 # ament_target_dependencies(odom_node nav_msgs geometry_msgs sensor_msgs tf2_ros tf2_eigen tf2_geometry_msgs)
 
 
+# Custom messages
+find_package(rosidl_default_generators REQUIRED)
+
+
+
 
 
 install(TARGETS
@@ -82,5 +87,11 @@ if(BUILD_TESTING)
   #set(ament_cmake_cpplint_FOUND TRUE)
   ament_lint_auto_find_test_dependencies()
 endif()
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/DVL.msg"
+  "msg/DVLBeam.msg"
+  DEPENDENCIES builtin_interfaces
+ )
 
 ament_package()

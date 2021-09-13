@@ -1,4 +1,4 @@
-#include "odometry/odom.hpp"
+#include "brov2_odometry/odom.hpp"
 
 int main(int argc, char** argv)
 {

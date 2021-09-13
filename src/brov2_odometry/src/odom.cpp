@@ -1,4 +1,4 @@
-#include "odometry/odom.hpp"
+#include "odom.hpp"
 
 using std::placeholders::_1;
 
@@ -28,7 +28,7 @@ SimpleOdom::SimpleOdom() : Node{"odom_node"}
   //  update_rate = 20;
 
   // set up IMU and DVL transforms
-  tf2_ros::Buffer tf_buffer;
+  tf2_ros::Buffer tf_buffer();
   tf2_ros::TransformListener tf_listener(tf_buffer);
   double timeout = 10; // seconds to wait for transforms to become available
   RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Waiting for IMU and DVL transforms..");

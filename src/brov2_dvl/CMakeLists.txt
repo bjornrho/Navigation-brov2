@@ -10,7 +10,6 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(brov2_interfaces REQUIRED)
-find_package(Boost REQUIRED)
 
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -18,6 +17,8 @@ find_package(sensor_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
+
+find_package(nlohmann_json)
 
 
 
@@ -33,8 +34,9 @@ include(GtsamMakeConfigFile)
 
 ###### GTSAM STUFF ENDS HER
 
-add_executable(talker src/publisher_member_function.cpp)
-ament_target_dependencies(talker rclcpp std_msgs Boost brov2_interfaces)
+add_executable(DVLPublisher src/DVLPublisher.cpp)
+ament_target_dependencies(DVLPublisher rclcpp std_msgs brov2_interfaces)
+target_link_libraries(DVLPublisher nlohmann_json::nlohmann_json)
 
 add_executable(listener src/subscriber_member_function.cpp)
 ament_target_dependencies(listener rclcpp std_msgs)
@@ -52,7 +54,7 @@ ament_target_dependencies(listener rclcpp std_msgs)
 
 
 install(TARGETS
-  talker
+  DVLPublisher
   listener
   #odometry_example
   #odom_node

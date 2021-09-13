@@ -8,7 +8,7 @@ float64 fom
 #Altitude of the sensor
 float64 altitude
 #Beams/Transducers
-DVLBeam[] beams
+DVLBeam[4] beams
 #Validity of velocity
 bool velocity_valid
 #Status message

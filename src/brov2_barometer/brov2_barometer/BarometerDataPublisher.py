@@ -12,15 +12,15 @@ class BarometerDataPublisher(Node):
     def __init__(self):
         super().__init__('BarometerDataPublisher')
         self.publisher_ = self.create_publisher(Barometer, 'barometer_data', 10)
-        timer_period = 0.1  # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        read_period = 0.1  # seconds
+        self.timer = self.create_timer(read_period, self.barometer_read_and_publish)
 
         self.sensor = ms5837.MS5837_30BA()
         if not self.sensor.init():
             print("Sensor could not be initialized")
             exit(1)
 
-    def timer_callback(self):
+    def barometer_read_and_publish(self):
         msg = Barometer()
 
         if self.sensor.read():

@@ -2,6 +2,7 @@
 
 Sensor-drivers and odometry for navigation purposes using [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
 
+
 ## Sensor suite
 
 Sensors used in this project:
@@ -14,6 +15,7 @@ Sensors used in this project:
 ## Libraries
 
 [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
+[Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
 
 
 ## License

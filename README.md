@@ -14,8 +14,8 @@ Sensors used in this project:
 
 ## Libraries
 
-[BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
-[Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
+* [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
+* [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
 
 
 ## License

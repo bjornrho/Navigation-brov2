@@ -13,9 +13,14 @@ find_package(brov2_interfaces REQUIRED)
 find_package(Curses REQUIRED)
 
 
-add_executable(listen_and_display src/subscribe_and_display.cpp)
+add_executable(listen_and_display src/subscribe_and_display.cpp src/ncursesfun.cpp)
 ament_target_dependencies(listen_and_display rclcpp std_msgs brov2_interfaces)
-target_link_libraries(listen_and_display ncurses)
+target_link_libraries(listen_and_display ncurses panel)
+target_include_directories(listen_and_display
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+
 
 install(TARGETS
   listen_and_display

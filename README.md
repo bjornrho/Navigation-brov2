@@ -12,6 +12,12 @@ Sensors used in this project:
 * Barometer: Blue Robotics BAR30
 * Side-scan sonar: Deepvision OSMEthernet Sonar System, 680 kHz transducers
 
+## Barometer
+
+Heavily based on the MS5837 library mentioned under [Libraries](#libraries).
+Remember to enable I2C on the Raspberry Pi and connect on the correct pins!
+
+
 ## Libraries
 
 * [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)

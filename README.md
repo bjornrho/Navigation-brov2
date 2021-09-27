@@ -22,6 +22,7 @@ Remember to enable I2C on the Raspberry Pi and connect on the correct pins!
 
 * [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
 * [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
+* [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
 
 
 ## License

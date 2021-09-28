@@ -3,9 +3,9 @@ std_msgs/Header header
 float64 time
 #Measured velocity [m/s]
 geometry_msgs/Vector3 velocity
-#Figure of Merit
+#Figure of merit, measure of the accuracy of the measured velocities (m/s)
 float64 fom
-#Altitude of the sensor
+#Measured altitude to the bottom (m)
 float64 altitude
 #Beams/Transducers
 DVLBeam[4] beams

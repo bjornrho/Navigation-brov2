@@ -44,51 +44,52 @@ class DVLPublisher : public rclcpp::Node
         hints.ai_socktype = SOCK_STREAM;
         getaddrinfo("192.168.2.52", "16171", &hints, &res); // Move IP and PORT values to parameter server
 
-        //try{
-        //    sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        //    if (connect(sock, res->ai_addr, res->ai_addrlen) < 0){
-        //        RCLCPP_INFO(this->get_logger(), "Connection failed");
-        //        throw connect(sock, res->ai_addr, res->ai_addrlen);
-        //    }else{
-        //        RCLCPP_INFO(this->get_logger(), "Connection succeeded");
-        //    }
-        //    
-        //}
-        //catch (int except) {
-        //    RCLCPP_INFO(this->get_logger(), "Trying to connect again");
-        //    connectToDVL();
-        //}
-
-        sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-        std::cout << sock << std::endl;
-        auto fuck = connect(sock, res->ai_addr, res->ai_addrlen);
-        if (fuck < 0){
-            RCLCPP_INFO(this->get_logger(), "Connection failed");
-            throw connect(sock, res->ai_addr, res->ai_addrlen);
-        }else{
-            std::cout << fuck << std::endl;
-            RCLCPP_INFO(this->get_logger(), "Connection succeeded");
+        try{
+            sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+            if (connect(sock, res->ai_addr, res->ai_addrlen) < 0){
+                RCLCPP_INFO(this->get_logger(), "Connection failed");
+                throw connect(sock, res->ai_addr, res->ai_addrlen);
+            }else{
+                RCLCPP_INFO(this->get_logger(), "Connection succeeded");
+            }
+            
         }
+        catch (int except) {
+            RCLCPP_INFO(this->get_logger(), "Trying to connect again");
+            connectToDVL();
+        }
+
+        //sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+        //std::cout << sock << std::endl;
+        //auto fuck = connect(sock, res->ai_addr, res->ai_addrlen);
+        //if (fuck < 0){
+        //    RCLCPP_INFO(this->get_logger(), "Connection failed");
+        //    throw connect(sock, res->ai_addr, res->ai_addrlen);
+        //}else{
+        //    std::cout << fuck << std::endl;
+        //    RCLCPP_INFO(this->get_logger(), "Connection succeeded");
+        //}
     }
     
     
 
   private:
     std::string getData(){
-        char buf[1];
+        // Adding '\0' such that only the data character is processed.
+        char buf[2];
+        buf[1] ='\0';
         int rec;
 
         std::string raw_data = "";
 
         while (raw_data.back() != '\n'){
-            rec = recv(sock,buf,1,0);
+            rec = recv(sock,buf,sizeof(char),0);
             if (rec == 0){
                 RCLCPP_INFO(this->get_logger(), "Socket closed by the DVL, reopening");
                 this->connectToDVL();
                 // Add exception handling
             }
             raw_data = raw_data + buf;
-            std::cout << raw_data;
         }       
 
         return raw_data;
@@ -154,8 +155,7 @@ class DVLPublisher : public rclcpp::Node
             DVLPosEstimate.form     = json_data["format"];
             
             odometry_publisher_->publish(DVLPosEstimate);
-        }
-    //std::cout << "PUBPUB\n";    
+        }   
     }
 
     brov2_interfaces::msg::DVL theDVL = brov2_interfaces::msg::DVL();
@@ -174,10 +174,6 @@ class DVLPublisher : public rclcpp::Node
 int main(int argc, char * argv[])
 {
   rclcpp::init(argc, argv);
-
-  //DVLPublisher connection;
-  //connection.connectToDVL();
-
   rclcpp::spin(std::make_shared<DVLPublisher>());
   rclcpp::shutdown();
   return 0;

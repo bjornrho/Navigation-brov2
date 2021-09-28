@@ -9,12 +9,13 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(brov2_interfaces REQUIRED)
 find_package(Curses REQUIRED)
 
 
 add_executable(listen_and_display src/subscribe_and_display.cpp src/ncursesfun.cpp)
-ament_target_dependencies(listen_and_display rclcpp std_msgs brov2_interfaces)
+ament_target_dependencies(listen_and_display rclcpp std_msgs sensor_msgs brov2_interfaces)
 target_link_libraries(listen_and_display ncurses panel)
 target_include_directories(listen_and_display
   PUBLIC

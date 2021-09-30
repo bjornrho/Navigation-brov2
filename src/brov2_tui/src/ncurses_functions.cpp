@@ -1,4 +1,4 @@
-#include "brov2_tui/ncursesfun.h"
+#include "brov2_tui/ncurses_functions.h"
 
 
 
@@ -58,8 +58,6 @@ void NcursesFunctions::PrintWindowTitle(WINDOW* win, int title_center, const cha
     mvwprintw(win, 0, title_center, title);
     wattroff(win, COLOR_PAIR(1));
 }
-
-
 
 
 //////////////////////////////////////////////
@@ -201,9 +199,10 @@ void NcursesFunctions::SetupTui(std::vector<WINDOW*> my_wins)
 //////////////////////////////////////////////////////
 // Update functions for the different sensor windows//
 //////////////////////////////////////////////////////
+
 //void NcursesFunctions::UpdateTopWindow(WINDOW* win)
 //{}
-//
+
 void NcursesFunctions::UpdateDVLWindow(WINDOW* win, const brov2_interfaces::msg::DVL::ConstSharedPtr msg)
 {
     // Initializing streams for each data container

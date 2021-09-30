@@ -1,5 +1,5 @@
-#ifndef NCURSESFUN_H
-#define NCURSESFUN_H
+#ifndef NCURSES_FUNCTIONS_H
+#define NCURSES_FUNCTIONS_H
 
 #include <vector>
 #include <ncurses.h>
@@ -75,4 +75,4 @@ private:
 
 
 
-#endif /* NCURSESFUN */
+#endif /* NCURSES_FUNCTIONS */

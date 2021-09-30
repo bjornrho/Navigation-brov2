@@ -14,18 +14,17 @@ find_package(brov2_interfaces REQUIRED)
 find_package(nlohmann_json)
 
 
-add_executable(DVLPublisher src/DVLPublisher.cpp)
+add_executable(DVLPublisher src/dvl_publisher_node_main.cpp src/dvl_publisher_node)
 ament_target_dependencies(DVLPublisher rclcpp std_msgs brov2_interfaces)
 target_link_libraries(DVLPublisher nlohmann_json::nlohmann_json)
-
-add_executable(listener src/subscriber_member_function.cpp)
-ament_target_dependencies(listener rclcpp std_msgs)
-
+target_include_directories(DVLPublisher
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
 
 
 install(TARGETS
   DVLPublisher
-  listener
   DESTINATION lib/${PROJECT_NAME}
 )
 

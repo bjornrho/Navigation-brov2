@@ -14,7 +14,7 @@ find_package(brov2_interfaces REQUIRED)
 find_package(Curses REQUIRED)
 
 
-add_executable(listen_and_display src/subscribe_and_display.cpp src/ncursesfun.cpp)
+add_executable(listen_and_display src/sensor_subscriber_node_main.cpp src/sensor_subscriber_node.cpp src/ncurses_functions.cpp)
 ament_target_dependencies(listen_and_display rclcpp std_msgs sensor_msgs brov2_interfaces)
 target_link_libraries(listen_and_display ncurses panel)
 target_include_directories(listen_and_display

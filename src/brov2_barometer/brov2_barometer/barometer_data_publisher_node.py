@@ -1,4 +1,3 @@
-import rclpy
 from rclpy.node import Node
 
 # ms5837 needed in order to utilize the BlueRobotics MS5837 Python Library which must be installed
@@ -43,21 +42,3 @@ class BarometerDataPublisher(Node):
                                                                                                   msg.pressure_psi, 
                                                                                                   msg.temperature_celsius, 
                                                                                                   msg.temperature_farenheit))
-
-
-def main(args=None):
-    rclpy.init(args=args)
-    
-    # Construct the publisher
-    barometer_data_publisher = BarometerDataPublisher()
-
-    # Reading and publishing data at defined rate (0.1 seconds)
-    rclpy.spin(barometer_data_publisher)
-
-    # Clean up when script is stopped
-    barometer_data_publisher.destroy_node()
-    rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()

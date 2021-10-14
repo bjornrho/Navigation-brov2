@@ -26,5 +26,11 @@ def generate_launch_description():
             namespace='bno055',
             executable='bno055_sensor_node',
             name='sensors'
+        ),
+        Node(
+            package='brov2_sonar',
+            namespace='sonar',
+            executable='SonarPublisher',
+            name='sensors'
         )
     ])

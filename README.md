@@ -1,4 +1,4 @@
-# Navigation for Blue ROV2
+# Navigation for BlueROV2
 
 Sensor-drivers and odometry for navigation purposes using [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
 

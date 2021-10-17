@@ -19,6 +19,7 @@ class BarometerDataPublisher(Node):
         if not self.sensor.init():
             print("Sensor could not be initialized")
             exit(1)
+        self.get_logger().info('Barometer initialized')
 
     def barometer_read_and_publish(self):
         # Custom barometer message to publish. Can be found in the brov2_interfaces.
@@ -37,8 +38,9 @@ class BarometerDataPublisher(Node):
 
         # Publishing message and logging data sent over the topic /barometer_data
         self.publisher_.publish(msg)
-        self.get_logger().info('Depth: %0.2f m\tP: %0.1f mbar  %0.3f psi\tT: %0.2f C  %0.2f F' % (msg.depth, 
-                                                                                                  msg.pressure_mbar, 
-                                                                                                  msg.pressure_psi, 
-                                                                                                  msg.temperature_celsius, 
-                                                                                                  msg.temperature_farenheit))
+        
+        # self.get_logger().info('Depth: %0.2f m\tP: %0.1f mbar  %0.3f psi\tT: %0.2f C  %0.2f F' % (msg.depth, 
+        #                                                                                          msg.pressure_mbar, 
+        #                                                                                          msg.pressure_psi, 
+        #                                                                                          msg.temperature_celsius, 
+        #                                                                                          msg.temperature_farenheit))

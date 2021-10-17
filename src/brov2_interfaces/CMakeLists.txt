@@ -22,6 +22,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/DVL.msg"
   "msg/DVLBeam.msg"
   "msg/DVLOdom.msg"
+  "msg/Reference.msg"
   "msg/Sonar.msg"
   DEPENDENCIES std_msgs geometry_msgs
  )

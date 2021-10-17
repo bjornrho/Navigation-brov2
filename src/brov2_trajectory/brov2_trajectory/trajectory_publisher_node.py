@@ -1,4 +1,3 @@
-import rclpy
 import csv
 from rclpy.node import Node
 
@@ -10,10 +9,11 @@ from geometry_msgs.msg import Vector3, Quaternion, Twist
 class TrajectoryPublisher(Node):
 
     def __init__(self):
+        # Initialization of trajectory publisher
         super().__init__('trajectory_publisher')
         self.publisher_ = self.create_publisher(Reference, 'trajectory_topic', 10)
-        timer_period = 1/10  # seconds
-        self.timer = self.create_timer(timer_period, self.reference_publisher)
+        trajectory_period = 1/10  # seconds
+        self.trajectory_timer = self.create_timer(trajectory_period, self.reference_publisher)
         self.trajectory_iterator = 0
 
         # Getting trajectories from csv-file

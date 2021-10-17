@@ -1,10 +1,13 @@
 // Based off sonar example from DeepVision and converted to ROS format
+// Made public with permission from DeepVision. API needed
 
 
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <iostream>
 #include <string>
+#include <ctime>
 
 #include "rclcpp/rclcpp.hpp"
 #include "std_msgs/msg/string.hpp"
@@ -37,8 +40,14 @@ public:
 	Sonar.StartRec(range);
     // Connect to the Sonar
     ConnectToSonar();
-    // Set up the file writer with the filename "Example.dvs" and the settings we have sent to the sonar.
-	DVSFile.Create("SONAR_DATA.dvs", leftActive, rightActive, resolution, nSamples);
+    // Set up the file writer with the filename "SONAR_DATA_*today*.dvs" and the settings we have sent to the sonar.
+    time_t now;
+    time(&now);
+    char buffer[21];
+    strftime(buffer, 21, "%F%H%M%S", localtime(&now));
+    std::string sonar_file = "SONAR_DATA" + std::string(buffer) + ".dvs";
+
+	DVSFile.Create(sonar_file.c_str(), leftActive, rightActive, resolution, nSamples);
   }
 
 private:
@@ -68,4 +77,3 @@ private:
 
   brov2_interfaces::msg::Sonar sonarMsg = brov2_interfaces::msg::Sonar();
 };
-	

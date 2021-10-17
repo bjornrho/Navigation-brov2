@@ -1,4 +1,14 @@
 build
 install
 log
+bag_files
+SONAR_DATA.dvs
+SONAR_DATA_POOL_TEST_1.dvs
+horizontal_trajectory.csv
+src/brov2_sonar/src/DSSPParser.cpp
+src/brov2_sonar/src/DVSFileWriter.cpp
+src/brov2_sonar/src/EthernetSonarAPI.cpp
+src/brov2_sonar/include/brov2_sonar/DSSPParser.hpp
+src/brov2_sonar/include/brov2_sonar/DVSFileWriter.hpp
+src/brov2_sonar/include/brov2_sonar/EthernetSonarAPI.hpp
 .vscode

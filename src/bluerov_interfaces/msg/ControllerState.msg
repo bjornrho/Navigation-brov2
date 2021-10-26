@@ -1,0 +1,20 @@
+std_msgs/Header header
+
+int64 q
+float64 m1
+float64 m2
+float64 m3
+float64 m4
+float64 d1
+float64 d2
+float64 d3
+float64 d4
+float64 d5
+float64 d6
+float64 d7
+float64 d8
+float64 bias_x
+float64 bias_y
+float64 bias_z
+float64 k_1
+float64 k_2

@@ -7,7 +7,7 @@ def main(args=None):
     
     # Construct the publisher
     barometer_data_publisher = node.BarometerDataPublisher()
-
+    
     # Reading and publishing data at defined rate (0.1 seconds)
     rclpy.spin(barometer_data_publisher)
 

@@ -56,13 +56,17 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::Publisher<brov2_interfaces::msg::Sonar>::SharedPtr sonar_data_publisher_;
 
+  // 1. for 670k Transducers
+  // you can use 32 periods, df=50k (645k to 685k)
+  // If shorter ranges you can use 16 periods and longer ranges try 64 periods.
+
   const static int BUFFERSIZE = 2048;
   float range = 30;									        // Sonar range in meters
   int nSamples = 500;									    // Number of samples per active side and ping
 
   int nPeriods = 32;									    // Number of periods of transmitted pulse
-  float startFreq = 320000;								    // Starting frequency of transmitted pulse
-  float deltaFreq = 40000;								    // Delta frequency of transmitted pulse
+  float startFreq = 645000;//320000;								    // Starting frequency of transmitted pulse
+  float deltaFreq = 40000; //40000;		    			    // Delta frequency of transmitted pulse
   bool leftActive = true;								    // true if left side is to be used
   bool rightActive = true;								    // true if right side is to be used
   float resolution = (float) ( range * 1.0 ) / nSamples;	// Resolurion of the resulting image in meters

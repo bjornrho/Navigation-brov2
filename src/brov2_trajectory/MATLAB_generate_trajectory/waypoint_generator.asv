@@ -8,18 +8,18 @@ half_dist = 100/2; %[m]
 % Waypoint definitions
 origo = [0,0,0];
 start_offshore = [5,0, 2];
-wp_pair_1  = [20,                -half_dist,  5,     20+turn_diam,      -half_dist,  5];
-wp_pair_2  = [20+turn_diam,       half_dist,  10,    20+2*turn_diam,     half_dist,  12.5];
-wp_pair_3  = [20+2*turn_diam,    -half_dist,  12.5,  20+3*turn_diam,    -half_dist,  15];
-wp_pair_4  = [20+3*turn_diam,     half_dist,  20,    20+4*turn_diam,     half_dist,  20];
-wp_pair_5  = [20+4*turn_diam,    -half_dist,  22,    20+5*turn_diam,    -half_dist,  22];
-wp_pair_6  = [20+5*turn_diam,     half_dist,  22,    20+6*turn_diam,     half_dist,  24];
-wp_pair_7  = [20+6*turn_diam,    -half_dist,  24,    20+7*turn_diam,    -half_dist,  24];
-wp_pair_8  = [20+7*turn_diam,     half_dist,  24,    20+8*turn_diam,     half_dist,  24];
-wp_pair_9  = [20+8*turn_diam,    -half_dist,  24,    20+9*turn_diam,    -half_dist,  24];
-wp_pair_10 = [20+9*turn_diam,     half_dist,  24,    20+10*turn_diam,    half_dist,  24];
-wp_pair_11 = [20+10*turn_diam,   -half_dist,  24,    20+11*turn_diam,   -half_dist,  24];
-wp_pair_12 = [20+11*turn_diam,    half_dist,  24,    20+12*turn_diam,    half_dist,  24];
+wp_pair_1  = [20,                -half_dist, -5,     20+turn_diam,      -half_dist,  5];
+wp_pair_2  = [20+turn_diam,       half_dist, -10,    20+2*turn_diam,     half_dist,  12.5];
+wp_pair_3  = [20+2*turn_diam,    -half_dist, -12.5,  20+3*turn_diam,    -half_dist,  15];
+wp_pair_4  = [20+3*turn_diam,     half_dist, -20,    20+4*turn_diam,     half_dist,  20];
+wp_pair_5  = [20+4*turn_diam,    -half_dist, -22,    20+5*turn_diam,    -half_dist,  22];
+wp_pair_6  = [20+5*turn_diam,     half_dist, -22,    20+6*turn_diam,     half_dist,  24];
+wp_pair_7  = [20+6*turn_diam,    -half_dist, -24,    20+7*turn_diam,    -half_dist, -24];
+wp_pair_8  = [20+7*turn_diam,     half_dist, -24,    20+8*turn_diam,     half_dist, -24];
+wp_pair_9  = [20+8*turn_diam,    -half_dist, -24,    20+9*turn_diam,    -half_dist, -24];
+wp_pair_10 = [20+9*turn_diam,     half_dist, -24,    20+10*turn_diam,    half_dist, -24];
+wp_pair_11 = [20+10*turn_diam,   -half_dist, -24,    20+11*turn_diam,   -half_dist, -24];
+wp_pair_12 = [20+11*turn_diam,    half_dist, -24,    20+12*turn_diam,    half_dist, -24];
 stop_offshore = [wp_pair_12(4),   8,         wp_pair_12(6)];
 
 % Time of Arrival definitions

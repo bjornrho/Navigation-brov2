@@ -203,7 +203,7 @@ class StateEstimateSubPub(Node):
         # u = np.array([x,y,z])
         # v = np.array([self.current_vel.velocity.x, self.current_vel.velocity.y, self.current_state_estimate.twist.twist.linear.z])
         # 
-        # vel_vector = 2.0 * np.dot(u, v) * u + (w*w - np.dot(u,u))*u + 2.0 * w*np.cross(u,v)
+        # vel_vector = 2.0 * np.dot(u, v) * u + (w*w - np.dot(u,u)) * v + 2.0 * w*np.cross(u,v) #FIXED *v instead of *u second term!!
         # 
         # self.current_state_estimate.pose.pose.position.x = self.current_state_estimate.pose.pose.position.x + vel_vector[0]*0.1
         # self.current_state_estimate.pose.pose.position.y = self.current_state_estimate.pose.pose.position.y + vel_vector[1]*0.1

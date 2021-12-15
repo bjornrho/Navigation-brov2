@@ -1,5 +1,7 @@
 from numpy.core.numeric import roll
 from rosidl_parser.definition import Include
+from scipy.spatial.transform import Rotation
+import quaternion
 
 import math
 import numpy as np
@@ -67,15 +69,9 @@ class StateEstimateSubPub(Node):
         self.current_barometer = Barometer()
         self.current_state_estimate = Odometry()
 
-        self.current_corrected_orientation = np.zeros(4)
+        self.current_corrected_orientation = np.quaternion(1,0,0,0) # Should this be unit or just zeros?
+        self.previous_barometer = Barometer()
 
-    def quaternion_multiply(self, quaternion1, quaternion0):
-        w0, x0, y0, z0 = quaternion0
-        w1, x1, y1, z1 = quaternion1
-        return np.array([-x1 * x0 - y1 * y0 - z1 * z0 + w1 * w0,
-                          x1 * w0 + y1 * z0 - z1 * y0 + w1 * x0,
-                         -x1 * z0 + y1 * w0 + z1 * x0 + w1 * y0,
-                          x1 * y0 - y1 * x0 + z1 * w0 + w1 * z0], dtype=np.float64)
  
     def euler_from_quaternion(self, w, x, y, z):
         """
@@ -124,11 +120,9 @@ class StateEstimateSubPub(Node):
 
     def set_orientation_offset(self, request, response):
         # Inverse of the current corrected orientation is the same as the complex conjugate 
-        conjugated_orientation = self.current_corrected_orientation
-        for i in range(1,3):
-            conjugated_orientation[i] = -1 * self.current_corrected_orientation[i]
+        conjugated_orientation = self.current_corrected_orientation.conjugate()
 
-        w_offset, x_offset, y_offset, z_offset = self.quaternion_multiply(np.array([1, 0, 0, 0]), conjugated_orientation)
+        w_offset, x_offset, y_offset, z_offset = quaternion.as_float_array(conjugated_orientation)
         
         orientation_offset_w = Parameter('orientation_offset_w', Parameter.Type.DOUBLE, w_offset)
         orientation_offset_x = Parameter('orientation_offset_x', Parameter.Type.DOUBLE, x_offset)
@@ -152,51 +146,94 @@ class StateEstimateSubPub(Node):
         orientation_offset_x = self.get_parameter('orientation_offset_x').get_parameter_value().double_value
         orientation_offset_y = self.get_parameter('orientation_offset_y').get_parameter_value().double_value
         orientation_offset_z = self.get_parameter('orientation_offset_z').get_parameter_value().double_value
-        orientation_offset_quat = np.array([orientation_offset_w,
-                                            orientation_offset_x,
-                                            orientation_offset_y,
-                                            orientation_offset_z])
-        
-        # Position
-        self.current_state_estimate.pose.pose.position.x = self.current_odom.x - position_offset_x
-        self.current_state_estimate.pose.pose.position.y = self.current_odom.y - position_offset_y
-        self.current_state_estimate.pose.pose.position.z = self.current_barometer.depth
+        orientation_offset_quat = np.quaternion(orientation_offset_w,
+                                                orientation_offset_x,
+                                                orientation_offset_y, 
+                                                orientation_offset_z)
 
+        # Previous barometer message
+        self.previous_barometer = self.current_state_estimate.pose.pose.position.z
+        
+        
         # IMU axis correction - from ENU to NED (IMU orientation initialized in ros2_bno055_sensor)
-        quaternion_imu_raw = np.array([self.current_imu.orientation.w,
+        quaternion_imu_raw = np.quaternion(self.current_imu.orientation.w,
                                    self.current_imu.orientation.x,
                                    self.current_imu.orientation.y,
-                                   self.current_imu.orientation.z])
+                                   self.current_imu.orientation.z)
 
-        quaternion_rot_correction = np.array([0, np.sqrt(2)/2, np.sqrt(2)/2, 0])
-        #np.array([0, 0, -np.sqrt(2)/2, -np.sqrt(2)/2])
+        quaternion_rot_correction = np.quaternion(0, -np.sqrt(2)/2, -np.sqrt(2)/2, 0) 
+        # Erlends suggestion: np.quaternion(0, np.sqrt(2)/2, np.sqrt(2)/2, 0)
         
-        w_oriented, x_oriented, y_oriented, z_oriented = self.quaternion_multiply(quaternion_rot_correction, quaternion_imu_raw)
-        self.current_corrected_orientation = [w_oriented, x_oriented, y_oriented, z_oriented]
+        self.current_corrected_orientation = quaternion_rot_correction * quaternion_imu_raw # Correct order?
 
         # Orientation
-        w, x, y, z = self.quaternion_multiply(self.current_corrected_orientation, orientation_offset_quat)
+
+        ##### DVL #####
+        rot = Rotation.from_euler('xyz', [self.current_odom.roll, self.current_odom.pitch, self.current_odom.yaw],degrees=True)
+        quat = rot.as_quat()
+        
+        # self.current_state_estimate.pose.pose.orientation.w = quat[3]
+        # self.current_state_estimate.pose.pose.orientation.x = quat[0]
+        # self.current_state_estimate.pose.pose.orientation.y = quat[1]
+        # self.current_state_estimate.pose.pose.orientation.z = quat[2]
+        ###############
+
+        ##### IMU #####
+        w, x, y, z = quaternion.as_float_array(self.current_corrected_orientation * orientation_offset_quat)
         self.current_state_estimate.pose.pose.orientation.w = w
         self.current_state_estimate.pose.pose.orientation.x = x
         self.current_state_estimate.pose.pose.orientation.y = y
         self.current_state_estimate.pose.pose.orientation.z = z
+        ###############
 
-        # Velocity linear
-        self.current_state_estimate.twist.twist.linear.x = self.current_vel.velocity.x
-        self.current_state_estimate.twist.twist.linear.y = self.current_vel.velocity.y
-        self.current_state_estimate.twist.twist.linear.z = self.current_vel.velocity.z
+        dvl_placement_offset = rot.as_matrix()@np.array([-0.020, -0.100, 0.115])
+        
+
+
+        
+
+        # Position
+
+        ###### DVL ######
+        self.current_state_estimate.pose.pose.position.x = self.current_odom.x - position_offset_x - dvl_placement_offset[0]
+        self.current_state_estimate.pose.pose.position.y = self.current_odom.y - position_offset_y - dvl_placement_offset[1]
+        #################
+
+        ###### Homemade odometry ######
+        # u = np.array([x,y,z])
+        # v = np.array([self.current_vel.velocity.x, self.current_vel.velocity.y, self.current_state_estimate.twist.twist.linear.z])
+        # 
+        # vel_vector = 2.0 * np.dot(u, v) * u + (w*w - np.dot(u,u))*u + 2.0 * w*np.cross(u,v)
+        # 
+        # self.current_state_estimate.pose.pose.position.x = self.current_state_estimate.pose.pose.position.x + vel_vector[0]*0.1
+        # self.current_state_estimate.pose.pose.position.y = self.current_state_estimate.pose.pose.position.y + vel_vector[1]*0.1
+        ###############################    
+
+        self.current_state_estimate.pose.pose.position.z = self.current_barometer.depth
+
 
         # Velocity angular
         self.current_state_estimate.twist.twist.angular.x = self.current_imu.angular_velocity.x
         self.current_state_estimate.twist.twist.angular.y = self.current_imu.angular_velocity.y
         self.current_state_estimate.twist.twist.angular.z = self.current_imu.angular_velocity.z
+        vel_ang_vec = np.array([self.current_imu.angular_velocity.x,
+                                self.current_imu.angular_velocity.y,
+                                self.current_imu.angular_velocity.z])
+
+        # Velocity linear - z should be barometer derivated and low pass filtered
+        self.current_state_estimate.twist.twist.linear.x = self.current_vel.velocity.x - np.cross(vel_ang_vec, dvl_placement_offset)[0]
+        self.current_state_estimate.twist.twist.linear.y = self.current_vel.velocity.y - np.cross(vel_ang_vec, dvl_placement_offset)[1]
+        #self.current_state_estimate.twist.twist.linear.z = self.current_vel.velocity.z
+        self.current_state_estimate.twist.twist.linear.z = (self.current_state_estimate.pose.pose.position.z - self.previous_barometer) / 0.1
 
         self.state_estimate_publisher_.publish(self.current_state_estimate)
 
-        roll_x, pitch_y, yaw_z = self.euler_from_quaternion(w,x,y,z)
+        roll_x, pitch_y, yaw_z = self.euler_from_quaternion(w,x,y,z)#quat[3],quat[0],quat[1],quat[2])
 
         print("Converted quaternion to euler angles: ")
         print("Roll around x:  ", roll_x)
         print("Pitch around y: ", pitch_y)
         print("Yaw around z:   ", yaw_z)
         print("--------------------------------------")
+
+# -2 -10 11.5 trekke fra

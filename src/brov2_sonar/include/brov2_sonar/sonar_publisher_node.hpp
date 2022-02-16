@@ -1,5 +1,5 @@
 // Based off sonar example from DeepVision and converted to ROS format
-// Made public with permission from DeepVision. API needed
+// Made public with permission from DeepVision. API needed.
 
 
 #include <chrono>
@@ -65,11 +65,11 @@ private:
   int nSamples = 500;									    // Number of samples per active side and ping
 
   int nPeriods = 32;									    // Number of periods of transmitted pulse
-  float startFreq = 645000;//320000;								    // Starting frequency of transmitted pulse
+  float startFreq = 645000;//320000;					    // Starting frequency of transmitted pulse
   float deltaFreq = 40000; //40000;		    			    // Delta frequency of transmitted pulse
   bool leftActive = true;								    // true if left side is to be used
   bool rightActive = true;								    // true if right side is to be used
-  float resolution = (float) ( range * 1.0 ) / nSamples;	// Resolurion of the resulting image in meters
+  float resolution = (float) ( range * 1.0 ) / nSamples;	// Resolution of the resulting image in meters
   
   char sonarData[BUFFERSIZE];                               // Buffer to receive sonar data which is to be written to file.
   int receivedSamples;

@@ -42,12 +42,13 @@ void SonarPublisher::WriteAndPublishData(){
 
                 // Building sonar interface and publishing
                 
-                sonarMsg.data_zero.data = std::string(data0, size0);
-                sonarMsg.data_one.data = std::string(data1, size1);
+                sonarMsg.left_data.data = std::string(data0);//, size0);
+                sonarMsg.right_data.data = std::string(data1);//, size1);
 
                 sonar_data_publisher_->publish(sonarMsg);
                 pingCount++;
-				std::cout << "Complete ping #" << pingCount << " received. Publising on topic.\n";
+                RCLCPP_INFO(this->get_logger(), "Complete ping # '%i' received. Publising on topic.\n", pingCount);
+				// std::cout << "Complete ping #" << pingCount << " received. Publising on topic.\n";
 			}
 	    }
 	}

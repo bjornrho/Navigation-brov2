@@ -1,0 +1,9 @@
+*insert_name_of_node*:
+  ros__parameters:
+    std_a: 0.0
+    std_gyro: 0.0
+    std_dvl: 0.0
+    std_depth: 0.0
+    std_a_bias: 0.0
+    std_gyro_bias: 0.0
+    dvl_offset: [2.0, 2.0, 2.0]

@@ -18,8 +18,8 @@ class TrajectoryPublisher(Node):
         self.trajectory_iterator = 0
 
         # Getting trajectories from csv-file
-        #file = open('horizontal_trajectory.csv')
-        file = open('pool_trajectory.csv')
+        #file = open('trajectories/horizontal_trajectory.csv')
+        file = open('trajectories/pool_trajectory.csv')
         csvreader = csv.reader(file)
         self.rows = []
         for row in csvreader:

@@ -10,12 +10,14 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 find_package(brov2_interfaces REQUIRED)
+find_package(bluerov_interfaces REQUIRED) # Required by the trajectory publisher
 find_package(Curses REQUIRED)
 
 
 add_executable(listen_and_display src/sensor_subscriber_node_main.cpp src/sensor_subscriber_node.cpp src/ncurses_functions.cpp)
-ament_target_dependencies(listen_and_display rclcpp std_msgs sensor_msgs brov2_interfaces)
+ament_target_dependencies(listen_and_display rclcpp std_msgs sensor_msgs nav_msgs brov2_interfaces bluerov_interfaces)
 target_link_libraries(listen_and_display ncurses panel)
 target_include_directories(listen_and_display
   PUBLIC

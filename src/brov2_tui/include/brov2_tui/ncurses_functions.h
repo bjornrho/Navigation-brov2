@@ -8,10 +8,12 @@
 #include <cmath>
 
 #include "sensor_msgs/msg/imu.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 #include "brov2_interfaces/msg/barometer.hpp"
 #include "brov2_interfaces/msg/dvl.hpp"
 #include "brov2_interfaces/msg/dvl_beam.hpp"
 #include "brov2_interfaces/msg/dvl_odom.hpp"
+#include "bluerov_interfaces/msg/reference.hpp"
 
 
 class NcursesFunctions
@@ -29,13 +31,14 @@ public:
     void SetupOdomWindow(WINDOW* win);
     void SetupBarometerWindow(WINDOW* win);
     void SetupIMUWindow(WINDOW* win);
-    void SetupSonarWindow(WINDOW* win);
+    void SetupStateWindow(WINDOW* win);
 
     //void UpdateTopWindow(WINDOW* win);
     void UpdateDVLWindow(WINDOW* win, const brov2_interfaces::msg::DVL::ConstSharedPtr msg);
     void UpdateOdomWindow(WINDOW* win, const brov2_interfaces::msg::DVLOdom::ConstSharedPtr msg);
     void UpdateBarometerWindow(WINDOW* win, const brov2_interfaces::msg::Barometer::ConstSharedPtr msg);
     void UpdateIMUWindow(WINDOW* win, const sensor_msgs::msg::Imu::ConstSharedPtr msg);
+    void UpdateStateWindow(WINDOW* win, const nav_msgs::msg::Odometry::ConstSharedPtr msg);//, bluerov_interfaces::msg::Reference latest_reference);
     
     void SetupTui(std::vector<WINDOW*>);
 

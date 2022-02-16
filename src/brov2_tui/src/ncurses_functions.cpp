@@ -167,10 +167,10 @@ void NcursesFunctions::SetupIMUWindow(WINDOW* win)
 
 }
 
-void NcursesFunctions::SetupSonarWindow(WINDOW* win)
+void NcursesFunctions::SetupStateWindow(WINDOW* win)
 {
     refresh();
-    const char* title = "Sonar";
+    const char* title = "State";
     int title_center = round(SENSOR3_WINDOW_WIDTH/2) - round(strlen(title)/2);
     
     PrintWindowTitle(win, title_center, title);
@@ -191,7 +191,7 @@ void NcursesFunctions::SetupTui(std::vector<WINDOW*> my_wins)
     SetupOdomWindow(my_wins[2]);
     SetupBarometerWindow(my_wins[3]);
     SetupIMUWindow(my_wins[4]);
-    SetupSonarWindow(my_wins[5]);
+    SetupStateWindow(my_wins[5]);
 }
 
 
@@ -387,6 +387,49 @@ void NcursesFunctions::UpdateIMUWindow(WINDOW* win, const sensor_msgs::msg::Imu:
     const char* lin_z_data = ss_lin_z.str().c_str();
     mvwprintw(win, 13, DATA_PLACEMENT, lin_z_data);
 
+
+    wattroff(win, COLOR_PAIR(2));
+    wrefresh(win);
+}
+
+void NcursesFunctions::UpdateStateWindow(WINDOW* win, const nav_msgs::msg::Odometry::ConstSharedPtr msg)//, bluerov_interfaces::msg::Reference latest_reference)
+{
+    // Initializing streams for each data container
+    std::stringstream ss_pos_x;
+    std::stringstream ss_pos_y;
+    std::stringstream ss_pos_z;
+    std::stringstream ss_quat_x;
+    std::stringstream ss_quat_y;
+    std::stringstream ss_quat_z;
+    std::stringstream ss_quat_w;
+
+    refresh();
+    wattron(win, COLOR_PAIR(2));
+
+    // Conversion before printing at correct place in window
+    ss_pos_x << msg->pose.pose.position.x;
+    const char* pos_x_data = ss_pos_x.str().c_str();
+    mvwprintw(win, 2, DATA_PLACEMENT, pos_x_data);
+
+    //ss_y << msg->y;
+    //const char* pos_y_data = ss_y.str().c_str();
+    //mvwprintw(win, 3, DATA_PLACEMENT, pos_y_data);
+//
+    //ss_z << msg->z;
+    //const char* pos_z_data = ss_z.str().c_str();
+    //mvwprintw(win, 4, DATA_PLACEMENT, pos_z_data);
+//
+    //ss_roll << msg->roll;
+    //const char* roll_data = ss_roll.str().c_str();
+    //mvwprintw(win, 6, DATA_PLACEMENT, roll_data);
+//
+    //ss_pitch << msg->pitch;
+    //const char* pitch_data = ss_pitch.str().c_str();
+    //mvwprintw(win, 7, DATA_PLACEMENT, pitch_data);
+//
+    //ss_yaw << msg->yaw;
+    //const char* yaw_data = ss_yaw.str().c_str();
+    //mvwprintw(win, 8, DATA_PLACEMENT, yaw_data);
 
     wattroff(win, COLOR_PAIR(2));
     wrefresh(win);

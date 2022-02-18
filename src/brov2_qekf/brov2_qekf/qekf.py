@@ -172,10 +172,6 @@ class QEKF:
 
         self.dx = dx_hat
         self.P = P_hat
-
-        # Updating the accelerometer and gyrometer biases
-        self.std_a_bias += dx_hat[9:12]
-        self.std_gyro_bias += dx_hat[12:15]
         
         return dx_hat, P_hat
 
@@ -222,7 +218,7 @@ class QEKF:
         # Rotation matrix
         R = self.quaternion_to_rotation_matrix(self, self.x[6:10])
 
-        innovation = z - R.T@self.dx[3:6] # NOT SURE ABOUT FRAMES HERE?
+        innovation = z - R.T@self.x[3:6] # NOT SURE ABOUT FRAMES HERE?
 
         # Defining the Kalman gain
         K = self.P@H.T@inv(H@self.P@H.T + dvl_covariance)
@@ -233,10 +229,6 @@ class QEKF:
 
         self.dx = dx_hat
         self.P = P_hat
-
-        # Updating the accelerometer and gyrometer biases
-        self.std_a_bias += dx_hat[9:12]
-        self.std_gyro_bias += dx_hat[12:15]
         
         return dx_hat, P_hat
 

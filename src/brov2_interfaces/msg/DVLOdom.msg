@@ -18,3 +18,5 @@ float64 std
 float64 ts
 #Formatting of json
 string form
+#Report type
+string type

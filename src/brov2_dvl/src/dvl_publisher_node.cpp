@@ -1,9 +1,6 @@
 #include "brov2_dvl/dvl_publisher_node.hpp"
 
 
-
-//using namespace std::chrono_literals;
-
 int sock;
 
 
@@ -57,15 +54,23 @@ void DVLPublisher::publisher(){
     nlohmann::json json_data = nlohmann::json::parse(raw_data);
 
     if (json_data["type"] == "velocity"){
-        theDVL.time             = json_data["time"];
-	    theDVL.velocity.x       = json_data["vx"];
-        theDVL.velocity.y       = json_data["vy"];
-        theDVL.velocity.z       = json_data["vz"];
-        theDVL.fom              = json_data["fom"];
-	    theDVL.altitude         = json_data["altitude"];
-	    theDVL.velocity_valid   = json_data["velocity_valid"];
-	    theDVL.status           = json_data["status"];
-	    theDVL.form             = json_data["format"];
+        theDVL.time                 = json_data["time"];
+	    theDVL.velocity.x           = json_data["vx"];
+        theDVL.velocity.y           = json_data["vy"];
+        theDVL.velocity.z           = json_data["vz"];
+        theDVL.fom                  = json_data["fom"];
+
+        for (int i = 0; i < 9; i++){
+            theDVL.covariance[i]    = json_data["covariance"][i/3][i%3];}
+
+	    theDVL.altitude             = json_data["altitude"];
+	    theDVL.velocity_valid       = json_data["velocity_valid"];
+	    theDVL.status               = json_data["status"];
+        theDVL.time_of_validity     = json_data["time_of_validity"];
+        theDVL.time_of_transmission = json_data["time_of_transmission"];
+	    theDVL.form                 = json_data["format"];
+        theDVL.type                 = json_data["type"];
+
 	  
         beam0.id                = json_data["transducers"][0]["id"];
         beam0.velocity          = json_data["transducers"][0]["velocity"];
@@ -96,6 +101,7 @@ void DVLPublisher::publisher(){
         beam3.valid             = json_data["transducers"][3]["beam_valid"];
             
         theDVL.beams            = {beam0, beam1, beam2, beam3};
+        theDVL.header.stamp     = now();
         velocity_publisher_->publish(theDVL);
 
     }else{
@@ -109,6 +115,7 @@ void DVLPublisher::publisher(){
         DVLPosEstimate.std      = json_data["std"];
         DVLPosEstimate.ts       = json_data["ts"];
         DVLPosEstimate.form     = json_data["format"];
+        DVLPosEstimate.type     = json_data["type"];
             
         odometry_publisher_->publish(DVLPosEstimate);
     }   

@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.linalg import inv
+from numpy.linalg import norm
 from scipy.spatial.transform import Rotation
 
 
@@ -51,7 +52,6 @@ class QEKF:
         Returns:
             x     (k+1 ndarray) : Nominal state"""
 
-        p = self.x[0:3]
         v = self.x[3:6]
         q = self.x[6:10]
         a_b = self.x[10:13]
@@ -63,7 +63,6 @@ class QEKF:
         
         R_q = self.quaternion_to_rotation_matrix(self, q)
         q_rot = self.rotation_vector_to_quaternion((omega_m - omega_b), dt)
-
 
         # Integrating IMU measurements into nominal state following equation (260), where biases and g doesn't change
         self.x[0:3] += v*dt + (1/2)*(R_q@(a_m - a_b) + g)*(dt**2)
@@ -216,9 +215,9 @@ class QEKF:
         H = H_x@X_dx
 
         # Rotation matrix
-        R = self.quaternion_to_rotation_matrix(self, self.x[6:10])
+        R_q = self.quaternion_to_rotation_matrix(self, self.x[6:10])
 
-        innovation = z - R.T@self.x[3:6] # NOT SURE ABOUT FRAMES HERE?
+        innovation = z - R_q.T@self.x[3:6] # NOT SURE ABOUT FRAMES HERE?
 
         # Defining the Kalman gain
         K = self.P@H.T@inv(H@self.P@H.T + dvl_covariance)
@@ -358,7 +357,7 @@ class QEKF:
 
     @staticmethod
     def quaternion_product(p, q):
-        """Returns quaternion product of two quaternions following equation (12)
+        """Returns normalized quaternion product of two quaternions following equation (12)
 
         Args:
             p       (4,1 ndarray) : Quaternion of form [w,x,y,z]
@@ -376,5 +375,6 @@ class QEKF:
                              [p_w*q_x + p_x*q_w + p_y*q_z - p_z*q_y],
                              [p_w*q_y - p_x*q_z + p_y*q_w + p_z*q_x],
                              [p_w*q_z + p_x*q_y - p_y*q_x + p_z*q_w]])
+        qproduct = (1/norm(qproduct)) * qproduct
 
         return qproduct

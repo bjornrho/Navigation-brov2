@@ -23,13 +23,13 @@ class StateEstimateSubPub(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('x_0',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -9.81]),
-                ('std_a', 1.0),
-                ('std_gyro', 1.0),
+                ('x_0',[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0014, 0.0014, 0.0014, 0.0038, 0.0038, 0.0038, 0.0, 0.0, -9.81]),
+                ('std_a', np.sqrt(0.017)),
+                ('std_gyro', np.sqrt(0.04)),
                 ('std_dvl', 1.0),
                 ('std_depth', 1.0),
-                ('std_a_bias', 1.0),
-                ('std_gyro_bias', 1.0),
+                ('std_a_bias', 0.0014),
+                ('std_gyro_bias', 0.0038),
                 ('dvl_offset', [2.0, 2.0, 2.0])
             ]
         )
@@ -51,7 +51,7 @@ class StateEstimateSubPub(Node):
 
         # Initializing subscribers for sensors
         self.dvl_subscription = self.create_subscription(DVL, 'dvl/velocity_estimate', self.dvl_vel_sub, 10)
-        self.imu_subscription = self.create_subscription(Imu, 'bno055/imu/data', self.imu_sub, 10)
+        self.imu_subscription = self.create_subscription(Imu, 'bno055/imu_raw', self.imu_sub, 10)
         self.barometer_subscription = self.create_subscription(Barometer, 'barometer/barometer_data', self.barometer_sub, 10)
 
         # Initialization of state estimate publisher
@@ -72,6 +72,8 @@ class StateEstimateSubPub(Node):
         # Fetching dt
         t_2 = self.current_imu.header.stamp.sec + self.current_imu.header.stamp.nanosec*(10**(-9))
         t_1 = previous_stamp.sec + previous_stamp.nanosec*(10**(-9))
+        if t_1 == 0.0:
+            return
         dt = t_2 - t_1
 
         # Fetching u

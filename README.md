@@ -2,6 +2,9 @@
 
 Sensor-drivers and odometry for navigation purposes using [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
 
+## GStreamer
+
+Run shell scripts on PC and PI to set up 30fps live stream from camera to PC.
 
 ## Sensor suite
 
@@ -23,7 +26,7 @@ Remember to enable I2C on the Raspberry Pi and connect on the correct pins!
 * [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
 * [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
 * [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
-* [BNO055 IMU sensor ROS2 library](https://github.com/bdholt1/ros2_bno055_sensor)
+* [BNO055 IMU sensor ROS2 library](https://github.com/flynneva/bno055)
 
 
 ## License

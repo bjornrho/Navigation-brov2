@@ -11,7 +11,7 @@ class QEKF:
         """Initialization of the QEKF
 
         Args:
-            x_0           (19 list) : Initial starting point of nominal state
+            x_0            (19 list) : Initial starting point of nominal state
             dx_0        (18 ndarray) : Initial starting point of error-state  
             P_0        (18x18 array) : Initial covariance of error-state
             std_a                    : Accelerometer Gaussian noise
@@ -57,10 +57,10 @@ class QEKF:
         a_b = self.x[10:13]
         omega_b = self.x[13:16]
         g = self.x[16:]
-        
+
         a_m = u[0].reshape(-1,1)
         omega_m = u[1].reshape(-1,1)
-        
+
         R_q = self.quaternion_to_rotation_matrix(self, q)
         q_rot = self.rotation_vector_to_quaternion((omega_m - omega_b), dt)
 
@@ -88,25 +88,28 @@ class QEKF:
             """
         
         #Propagate the state using equation (268)
-        g = np.array([0, 0, 9.81])
-        p = self.dx[:3]
-        v = self.dx[3:6]
         R = self.dx[6:15].reshape((3,3))
         zero    = np.zeros((3,3))
         I       = np.eye(3)
+        a_b = self.x[10:13]
+        omega_b = self.x[13:16]
 
-        omega = u[1] - self.std_gyro_bias
-        a = u[0] - self.std_a_bias
+        a_m = u[0].reshape(-1,1)
+        omega_m = u[1].reshape(-1,1)
+
+        a = a_m - a_b
+        omega = omega_m - omega_b
+
 
         # Jacobian wrt. the error following equation (270)
-        F_x = np.block([[I,     I*dt,   zero,                           zero,   zero,   zero],
-                        [zero,  I,      -R@self.cross(a)*dt,            -R*dt,  zero,   zero],
-                        [zero,  zero,   self.rodrigues(self,omega,dt).T,     zero,   -I*dt,  zero],
-                        [zero,  zero,   zero,                           I,      zero,   zero],
-                        [zero,  zero,   zero,                           zero,   I,      zero],
-                        [zero,  zero,   zero,                           zero,   zero,   I]])
+        F_x = np.block([[I,     I*dt,   zero,                               zero,   zero,   zero],
+                        [zero,  I,      -R@self.cross(a)*dt,                -R*dt,  zero,   zero],
+                        [zero,  zero,   self.rodrigues(self,omega,dt).T,    zero,   -I*dt,  zero],
+                        [zero,  zero,   zero,                               I,      zero,   zero],
+                        [zero,  zero,   zero,                               zero,   I,      zero],
+                        [zero,  zero,   zero,                               zero,   zero,   I]])
         
-        dx_hat = F_x@self.dx #Should apparently be skipped due to mean initialized to zero. Let it be for now.
+        #dx_hat = F_x@self.dx #Should be skipped due to mean initialized to zero.
 
         #Propagate the uncertainty using equation (269)
         std_a = self.std_a
@@ -120,14 +123,14 @@ class QEKF:
         # Jacobian wrt. the perturbation vectors following equation (271)
         F_i = np.zeros((18,12))
         F_i[3:15] = np.eye(12)
-
+    
         P_hat = F_x@self.P@F_x.T + F_i@Q_i@F_i.T
 
-        self.dx = dx_hat
+        #self.dx = dx_hat #Should be skipped due to mean initialized to zero.
         self.P = P_hat
         self.last_u = u
 
-        return dx_hat, P_hat
+        return self.dx, P_hat
 
 
 
@@ -160,7 +163,7 @@ class QEKF:
         
         H = H_x@X_dx
 
-        innovation = depth_measurement - self.dx[2]
+        innovation = depth_measurement - self.x[2]
 
         # Defining the Kalman gain
         K = self.P@H.T*inv(H@self.P@H.T + V)
@@ -245,6 +248,7 @@ class QEKF:
             """
 
         q_dtheta = Rotation.from_euler('xyz', self.dx[6:9].T[0]).as_quat()
+        # Changing from [x,y,z,w] to [w,x,y,z] format
         q_dtheta[0], q_dtheta[-1] = q_dtheta[-1], q_dtheta[0]
         
         self.x[0:3] += self.dx[0:3]
@@ -298,10 +302,12 @@ class QEKF:
         Returns:
             x (3,3 ndarray) : Element of so(3)
             """
+        
+        x0, x1, x2 = x[:]
 
-        return np.array([[   0, -x[2],  x[1]],
-                        [ x[2],     0, -x[0]],
-                        [-x[1],  x[0],     0]])
+        return np.array([[0,   -x2[0],  x1[0]],
+                        [ x2[0],  0,   -x0[0]],
+                        [-x1[0],  x0[0],     0]])
 
     @staticmethod
     def rodrigues(self, omega, dt):
@@ -315,7 +321,7 @@ class QEKF:
         Returns:
             rot_mat (3,3 ndarray) : Rotation matrix
             """
-
+        
         R = np.eye(3)*np.cos(dt) + self.cross(omega)*np.sin(dt) + omega@omega.T*(1-np.cos(dt))
         return R
 
@@ -330,28 +336,30 @@ class QEKF:
         Returns:
             R          (3,3 ndarray) : Rotation matrix
             """
-      
         q_v = quaternion[1:]
         q_w = quaternion[0][0]
-        R = (q_w**2 - (q_v.T@q_v)[0][0])*np.eye(3) + 2*q_v@q_v.T + 2*q_w*self.cross(q_v.T[0])
+
+        R = (q_w**2 - (q_v.T@q_v)[0][0])*np.eye(3) + 2*q_v@q_v.T + 2*q_w*self.cross(q_v)
         return R
 
     @staticmethod
     def rotation_vector_to_quaternion(u, phi):
-        """Returns quaternion defined by rotation vector following equation (101)
+        """Returns normalized quaternion defined by rotation vector following equation (101)
 
         Args:
-            u         (3 ndarray) : Vector element of rotation vector
+            u       (3,1 ndarray) : Vector element of rotation vector
             phi                   : Scalar element of rotation vector
 
 
         Returns:
-            q       (4,1 ndarray) : Quaternion
+            q       (4,1 ndarray) : Normalized quaternion
             """
 
         q_v = u * np.sin(phi/2)
         q_w = np.cos(phi/2)
         q = np.block([[q_w],[q_v]])
+
+        q = q * (1/norm(q))
         return q
 
 
@@ -365,7 +373,7 @@ class QEKF:
 
 
         Returns:
-            qproduct       (4,1 ndarray) : Quaternion
+            qproduct       (4,1 ndarray) : Normalized quaternion
             """
         
         p_w,p_x,p_y,p_z = p.T[0]
@@ -375,6 +383,6 @@ class QEKF:
                              [p_w*q_x + p_x*q_w + p_y*q_z - p_z*q_y],
                              [p_w*q_y - p_x*q_z + p_y*q_w + p_z*q_x],
                              [p_w*q_z + p_x*q_y - p_y*q_x + p_z*q_w]])
-        qproduct = (1/norm(qproduct)) * qproduct
 
+        qproduct = (1/norm(qproduct)) * qproduct
         return qproduct

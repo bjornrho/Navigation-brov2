@@ -45,7 +45,7 @@ public:
     time(&now);
     char buffer[21];
     strftime(buffer, 21, "%F%H%M%S", localtime(&now));
-    std::string sonar_file = "SONAR_DATA" + std::string(buffer) + ".dvs";
+    std::string sonar_file = "SONAR_DATA_" + std::string(buffer) + ".dvs";
 
 	DVSFile.Create(sonar_file.c_str(), leftActive, rightActive, resolution, nSamples);
   }

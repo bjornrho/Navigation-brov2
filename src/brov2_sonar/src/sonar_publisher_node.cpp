@@ -41,14 +41,15 @@ void SonarPublisher::WriteAndPublishData(){
 				DVSFile.AddPingData(0.0, 0.0, 0.0, 0.0, data0, size0, data1, size1);
 
                 // Building sonar interface and publishing
-                
-                sonarMsg.left_data.data = std::string(data0);//, size0);
-                sonarMsg.right_data.data = std::string(data1);//, size1);
+                sonarMsg.header.stamp = now();
+                // 500 is the defined sample size (must be changed in custom message)
+                for (int j = 0; j < 500; j++) {
+                        sonarMsg.data_zero[j] = data0[j];
+                        sonarMsg.data_one[j]  = data1[j];
 
                 sonar_data_publisher_->publish(sonarMsg);
                 pingCount++;
                 RCLCPP_INFO(this->get_logger(), "Complete ping # '%i' received. Publising on topic.\n", pingCount);
-				// std::cout << "Complete ping #" << pingCount << " received. Publising on topic.\n";
 			}
 	    }
 	}

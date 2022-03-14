@@ -1,0 +1,4 @@
+name = "SmoothingSplines"
+uuid = "28e3f02b-caeb-40e3-963f-52c86cb5a6e4"
+authors = ["Bjornar <bjornar.rh@gmail.com>"]
+version = "0.1.0"

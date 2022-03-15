@@ -1,6 +1,3 @@
-import numpy as np
-
-
 class side_scan_data:
     def __init__(self, nS=500, rng=30):
         self.nSamples = nS                              # Number of samples per active side and ping

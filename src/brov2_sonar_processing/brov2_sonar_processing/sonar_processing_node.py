@@ -1,5 +1,6 @@
 from rclpy.node import Node
 from brov2_interfaces.msg import Sonar
+from brov2_interfaces.msg import DVL
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,21 +14,23 @@ class SonarProcessingNode(Node):
 
     def __init__(self):
         super().__init__('sonar_data_processor')
-        self.subscription = self.create_subscription(
-            Sonar,
-            'sonar_data',
-            self.sonar_sub,
-            10)
-        self.subscription  # prevent unused variable warning
+        self.dvl_subscription   = self.create_subscription(DVL, 'dvl/velocity_estimate', self.dvl_sub, 10)
+        self.sonar_subscription = self.create_subscription(Sonar, 'sonar_data', self.sonar_sub, 10)
+        
 
         # # Julia initialization
         # jl = julia.Julia(compiled_modules=False)
         # self.normalize_swath = jl.include('src/brov2_sonar_processing/brov2_sonar_processing/cubic_spline_regression.jl')
         # self.get_logger().info("Julia function compiled.")
 
-        # Sonar data object
+        # Sonar data processing - initialization
         self.side_scan_data = ssd.side_scan_data()
         self.spline = csr.cubic_spline_regression()
+        self.current_altitude = 0
+
+        # Coefficient of variance
+        self.CV_raw = []
+        self.CV_normalized = []
 
         # Plot related
         self.fig, self.axs = plt.subplots(1)
@@ -59,6 +62,20 @@ class SonarProcessingNode(Node):
         plt.pause(10e-5)
         self.fig.canvas.draw()
 
+    def plot_CV(self, ping, raw_swath, normalized_swath):
+        plt.cla()       
+        self.CV_raw.append(np.std(raw_swath) / np.mean(raw_swath))
+        self.CV_normalized.append(np.std(normalized_swath) / np.mean(normalized_swath))
+
+        self.axs.plot(range(0,ping), self.CV_raw, range(0,ping), self.CV_normalized)
+        self.axs.legend(["Raw swath", "Normalized swath"], loc="upper right")
+
+        self.axs.set_title("Across-track Coefficient of Variation")
+
+        plt.gca().axis('tight')
+        plt.pause(10e-5)
+        self.fig.canvas.draw()
+
     def plot_acoustic_image(self, ping, swath_right, swath_left):
         self.img_array[ping%500,:500] = np.array(swath_left[::-1])
         self.img_array[ping%500,500:] = np.array(swath_right)
@@ -73,22 +90,39 @@ class SonarProcessingNode(Node):
             plt.pause(10e-5)
             self.fig.canvas.draw()
 
-    def sonar_sub(self, msg):
+    def blind_zone_removal(self, swath):
+        r_FBR = self.current_altitude / np.tan(self.side_scan_data.theta + self.side_scan_data.alpha/2)
+        index_FBR = int(np.floor_divide(r_FBR, self.side_scan_data.res))
+        swath[:index_FBR] = [0] * index_FBR
+        # print("Alt: ", self.current_altitude)
+        return swath
+
+    def dvl_sub(self, dvl_msg):
+        # Altitude values of -1 are invalid
+        if dvl_msg.altitude != -1:
+            self.current_altitude = dvl_msg.altitude
+
+    def sonar_sub(self, sonar_msg):
         # Right transducer data handling
-        transducer_raw_right = msg.data_zero
+        transducer_raw_right = sonar_msg.data_zero
         swath_right = [int.from_bytes(byte_val, "big") for byte_val in transducer_raw_right]
         normalized_swath_right, spl_right = self.spline.swath_normalization(swath_right)
-        self.side_scan_data.right.append(np.array(normalized_swath_right))
+        normalized_bz_removed_right = self.blind_zone_removal(normalized_swath_right)
+        self.side_scan_data.right.append(np.array(normalized_bz_removed_right))
 
         # Left transducer data handling
-        transducer_raw_left = msg.data_one
+        transducer_raw_left = sonar_msg.data_one
         swath_left = [int.from_bytes(byte_val, "big") for byte_val in transducer_raw_left]
         normalized_swath_left, spl_left = self.spline.swath_normalization(swath_left)
-        self.side_scan_data.left.append(np.array(normalized_swath_left))
+        normalized_bz_removed_left = self.blind_zone_removal(normalized_swath_left)
+        self.side_scan_data.left.append(np.array(normalized_bz_removed_left))
 
         ping = len(self.side_scan_data.right)
 
-        self.plot_acoustic_image(ping, normalized_swath_right, normalized_swath_left)
+        #self.plot_acoustic_image(ping, normalized_bz_removed_right, normalized_bz_removed_left)
         #self.plot_swath(ping, swath_right, spl_right, swath_left, spl_left)
-        self.get_logger().info("Ping #%i" % ping)
+        self.plot_CV(ping, swath_right, normalized_swath_right)
+        #self.get_logger().info("Ping #%i" % ping)
+
+
         

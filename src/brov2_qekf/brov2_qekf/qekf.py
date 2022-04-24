@@ -1,3 +1,5 @@
+from argparse import ZERO_OR_MORE
+from telnetlib import PRAGMA_HEARTBEAT
 import numpy as np
 from numpy.linalg import inv
 from numpy.linalg import norm
@@ -7,20 +9,23 @@ from scipy.spatial.transform import Rotation
 # Implementation of the Quaternion based Extended Kalman Filter from Joan Solà's article: https://arxiv.org/abs/1711.02508
 # and the qekf implementation from FRoSt Lab available at https://bitbucket.org/frostlab/underwateriekf/src/main/
 class QEKF:
-    def __init__(self, x_0, dx_0, P_0, std_a, std_gyro, std_dvl, std_depth, std_a_bias, std_gyro_bias, dvl_offset):
+    def __init__(self, x_0, dx_0, P_0, std_a, std_gyro, std_dvl, std_depth, std_a_bias, std_gyro_bias, 
+                 dvl_offset, barometer_offset, imu_offset):
         """Initialization of the QEKF
 
         Args:
-            x_0            (19 list) : Initial starting point of nominal state
-            dx_0        (18 ndarray) : Initial starting point of error-state  
-            P_0        (18x18 array) : Initial covariance of error-state
-            std_a                    : Accelerometer Gaussian noise
-            std_gyro                 : Gyrometer Gaussian noise
-            std_dvl                  : Dvl Gaussian noise
-            std_depth                : Pressure sensor Gaussian noise
-            std_a_bias               : Accelerometer bias
-            std_gyro_bias            : Gyrometer bias
-            dvl_offset   (3 ndarray) : Offset value for DVL placement on ROV
+            x_0                 (19 list) : Initial starting point of nominal state
+            dx_0             (18 ndarray) : Initial starting point of error-state  
+            P_0             (18x18 array) : Initial covariance of error-state
+            std_a                         : Accelerometer Gaussian noise
+            std_gyro                      : Gyrometer Gaussian noise
+            std_dvl                       : Dvl Gaussian noise
+            std_depth                     : Pressure sensor Gaussian noise
+            std_a_bias                    : Accelerometer bias
+            std_gyro_bias                 : Gyrometer bias
+            dvl_offset        (3 ndarray) : Offset value for DVL placement on ROV
+            barometer_offset  (3 ndarray) : Offset value for barometer placement on ROV
+            imu_offset        (3 ndarray) : Offset value for IMU placement on ROV
             """
         
         # Initializing nominal state, error-state (mean zero) and covariance
@@ -38,6 +43,8 @@ class QEKF:
 
         # Defining offset values and previous IMU input (to be used accounting for offset)
         self.dvl_offset = np.array(dvl_offset).reshape(-1,1)
+        self.barometer_offset = np.array(barometer_offset).reshape(-1,1)
+        self.imu_offset = np.array(imu_offset).reshape(-1,1)
         self.last_u = np.zeros((2,3))
 
 
@@ -60,13 +67,17 @@ class QEKF:
 
         a_m = u[0].reshape(-1,1)
         omega_m = u[1].reshape(-1,1)
+        #print("Imu meas: \n", a_m)
+        #print(g)
 
         R_q = self.quaternion_to_rotation_matrix(self, q)
-        q_rot = self.rotation_vector_to_quaternion((omega_m - omega_b), dt)
+        phi = norm((omega_m - omega_b))*dt
+        q_rot = self.rotation_vector_to_quaternion((omega_m - omega_b), phi)
+        a_offset = self.cross(omega_m)@self.cross(omega_m)@self.imu_offset
 
         # Integrating IMU measurements into nominal state following equation (260), where biases and g doesn't change
-        self.x[0:3] += v*dt + (1/2)*(R_q@(a_m - a_b) + g)*(dt**2)
-        self.x[3:6] += (R_q@(a_m - a_b) + g)*dt
+        self.x[0:3] += v*dt + (1/2)*(R_q@(a_m - a_b - a_offset) - g)*(dt**2)
+        self.x[3:6] += (R_q@(a_m - a_b - a_offset) - g)*dt
         self.x[6:10] = self.quaternion_product(q,q_rot)
 
         return self.x
@@ -88,7 +99,8 @@ class QEKF:
             """
         
         #Propagate the state using equation (268)
-        R = self.dx[6:15].reshape((3,3))
+        q = self.x[6:10]
+        R = self.quaternion_to_rotation_matrix(self, q)
         zero    = np.zeros((3,3))
         I       = np.eye(3)
         a_b = self.x[10:13]
@@ -97,17 +109,17 @@ class QEKF:
         a_m = u[0].reshape(-1,1)
         omega_m = u[1].reshape(-1,1)
 
-        a = a_m - a_b
+        a_offset = self.cross(omega_m)@self.cross(omega_m)@self.imu_offset
+        a = a_m - a_b - a_offset
         omega = omega_m - omega_b
 
-
         # Jacobian wrt. the error following equation (270)
-        F_x = np.block([[I,     I*dt,   zero,                               zero,   zero,   zero],
-                        [zero,  I,      -R@self.cross(a)*dt,                -R*dt,  zero,   zero],
-                        [zero,  zero,   self.rodrigues(self,omega,dt).T,    zero,   -I*dt,  zero],
-                        [zero,  zero,   zero,                               I,      zero,   zero],
-                        [zero,  zero,   zero,                               zero,   I,      zero],
-                        [zero,  zero,   zero,                               zero,   zero,   I]])
+        F_x = np.block([[I,     I*dt,   zero,                                           zero,   zero,   zero],
+                        [zero,  I,      -R@self.cross(a)*dt,                            -R*dt,  zero,   -I*dt], #zero for gravity?
+                        [zero,  zero,   self.rodrigues(self,omega,norm(omega)*dt).T,    zero,   -I*dt,  zero],
+                        [zero,  zero,   zero,                                           I,      zero,   zero],
+                        [zero,  zero,   zero,                                           zero,   I,      zero],
+                        [zero,  zero,   zero,                                           zero,   zero,   I]])
         
         #dx_hat = F_x@self.dx #Should be skipped due to mean initialized to zero.
 
@@ -132,24 +144,15 @@ class QEKF:
 
         return self.dx, P_hat
 
-
-
-    def update_depth(self, depth_measurement):
-        """Runs correction step of QEKF
-
-        Args:
-            depth_measurement   : Incoming depth measurement from the pressure sensor (corresponding to dx[2])                       
-        Returns:
-            dx_hat  (19x1 ndarray) : Corrected state
-            P_hat    (18x18 array) : Corrected covariances
-            """
-
+    def update_orientation(self, q):
         # Defining the Jacobian H and the depth covariance V
-        H_x = np.zeros((1,19))
-        H_x[0,2] = 1
-        V = self.std_depth**2
-        
         q_w,q_x,q_y,q_z = self.x[6:10].T[0]
+
+        H_x = np.zeros((4,19))
+        H_x[:,6:10] = np.eye(4)
+
+        V = np.eye(4) * (0.0001**2)
+        
         Q_dtheta = (1/2)*np.array([[-q_x,   -q_y,   -q_z],
                                    [q_w,    -q_z,   q_y],
                                    [q_z,    q_w,    -q_x],
@@ -163,19 +166,64 @@ class QEKF:
         
         H = H_x@X_dx
 
-        innovation = depth_measurement - self.x[2]
+        innovation = np.array([[(q[0]-q_w)[0]],[(q[1]-q_x)[0]],[(q[2]-q_y)[0]],[(q[3]-q_z)[0]]])
+        # Defining the Kalman gain
+        K = self.P@H.T@inv(H@self.P@H.T + V)
+        
+        # Correcting state and covariance according to equations (275) and (276)
+        self.dx = K@innovation
+        #P_hat = (np.eye(18)-K@H)@self.P
+        self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + K@V@K.T
+
+        return self.dx, self.P
+
+
+    def update_depth(self, depth_measurement):
+        """Runs correction step of QEKF
+
+        Args:
+            depth_measurement   : Incoming depth measurement from the pressure sensor (corresponding to x[2])                       
+        Returns:
+            dx_hat  (19x1 ndarray) : Corrected state
+            P_hat    (18x18 array) : Corrected covariances
+            """
+
+        # Defining the Jacobian H and the depth covariance V
+        q_w,q_x,q_y,q_z = self.x[6:10].T[0]
+
+        H_x = np.zeros((1,19))
+        H_x[0,2] = 1
+        H_x[0,6] = 2*(q_y*self.barometer_offset[0] - q_x*self.barometer_offset[1] + q_w*self.barometer_offset[2])
+        H_x[0,7] = 2*(q_z*self.barometer_offset[0] - q_w*self.barometer_offset[1] - q_x*self.barometer_offset[2])
+        H_x[0,8] = 2*(q_w*self.barometer_offset[0] + q_z*self.barometer_offset[1] - q_y*self.barometer_offset[2])
+        H_x[0,9] = 2*(q_x*self.barometer_offset[0] + q_y*self.barometer_offset[1] + q_z*self.barometer_offset[2])
+
+        V = self.std_depth**2
+        
+        Q_dtheta = (1/2)*np.array([[-q_x,   -q_y,   -q_z],
+                                   [q_w,    -q_z,   q_y],
+                                   [q_z,    q_w,    -q_x],
+                                   [-q_y,   q_x,    q_w]]) # Equation (281)
+        
+        # Forming X_dx following equation (280)
+        X_dx = np.zeros((19,18))
+        X_dx[:6,:6] = np.eye(6)
+        X_dx[6:10,6:9] = Q_dtheta
+        X_dx[10:19,9:18] = np.eye(9)
+        
+        H = H_x@X_dx
+
+        innovation = depth_measurement - self.x[2] + (self.quaternion_to_rotation_matrix(self, self.x[6:10]).T@self.barometer_offset)[2]
 
         # Defining the Kalman gain
         K = self.P@H.T*inv(H@self.P@H.T + V)
         
         # Correcting state and covariance according to equations (275) and (276)
-        dx_hat = K*innovation
-        P_hat = (np.eye(18)-K@H)@self.P
+        self.dx = K*innovation
+        #P_hat = (np.eye(18)-K@H)@self.P
+        self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + V*K@K.T #matmul trouble due to scalar V using K@V@K.T
 
-        self.dx = dx_hat
-        self.P = P_hat
-        
-        return dx_hat, P_hat
+        return self.dx, self.P
 
 
 
@@ -183,8 +231,8 @@ class QEKF:
         """Runs correction step of QEKF
 
         Args:
-            dvl_measurement     (3 ndarray) : Incoming velocity measurement from the dvl corresponding to dx[3:6]
-            dvl_covariance    (3x3 ndarray) : Covariance matrix accompanying DVL measurement, V in equation (274)
+            dvl_measurement     (2 ndarray) : Incoming velocity measurement from the dvl corresponding to dx[3:5]
+            dvl_covariance    (2x2 ndarray) : Covariance matrix accompanying DVL measurement, V in equation (274)
 
         Returns:
             dx_hat  (19x1 ndarray)          : Corrected state
@@ -192,16 +240,17 @@ class QEKF:
             """
 
         if dvl_covariance is None:
-            dvl_covariance = (np.eye(3)*self.std_dvl)**2
+            dvl_covariance = (np.eye(2)*self.std_dvl)**2
 
         # Account for the DVL offset
         omega_m = self.last_u[1].reshape(-1,1)
         omega_b = self.x[13:16]
-        z = dvl_measurement + self.dvl_offset*(omega_m - omega_b)
+        
+        z = dvl_measurement - (self.dvl_offset*(omega_m - omega_b))[:2]
 
         # Defining the Jacobian H and the DVL covariance V
-        H_x = np.zeros((3,19))
-        H_x[:,3:6] = np.eye(3)
+        H_x = np.zeros((2,19))
+        H_x[:,3:5] = np.eye(2)
 
         q_w,q_x,q_y,q_z = self.x[6:10].T[0]
         Q_dtheta = (1/2)*np.array([[-q_x,   -q_y,   -q_z],
@@ -218,21 +267,19 @@ class QEKF:
         H = H_x@X_dx
 
         # Rotation matrix
-        R_q = self.quaternion_to_rotation_matrix(self, self.x[6:10])
-
-        innovation = z - R_q.T@self.x[3:6] # NOT SURE ABOUT FRAMES HERE?
+        #R_q = self.quaternion_to_rotation_matrix(self, self.x[6:10])
+        innovation = z - self.x[3:5] # NOT SURE ABOUT FRAMES HERE?  z - (R_q.T@self.x[3:6])[:2]
 
         # Defining the Kalman gain
         K = self.P@H.T@inv(H@self.P@H.T + dvl_covariance)
 
         # Correcting state and covariance according to equations (275) and (276)
-        dx_hat = K@innovation
-        P_hat = (np.eye(18)-K@H)@self.P
-
-        self.dx = dx_hat
-        self.P = P_hat
+        self.dx = K@innovation
         
-        return dx_hat, P_hat
+        #self.P = (np.eye(18) - K@H)@self.P
+        self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + K@dvl_covariance@K.T
+
+        return self.dx, self.P
 
 
 
@@ -247,13 +294,17 @@ class QEKF:
             x       (k+1 ndarray)   : Updated nominal state
             """
 
-        q_dtheta = Rotation.from_euler('xyz', self.dx[6:9].T[0]).as_quat()
-        # Changing from [x,y,z,w] to [w,x,y,z] format
-        q_dtheta[0], q_dtheta[-1] = q_dtheta[-1], q_dtheta[0]
+        #q_dtheta = Rotation.from_euler('xyz', self.dx[6:9].T[0]).as_quat()
+        ## Changing from [x,y,z,w] to [w,x,y,z] format
+        #q_dtheta[0], q_dtheta[-1] = q_dtheta[-1], q_dtheta[0]
+        q_dtheta = self.rotation_vector_to_quaternion(self.dx[6:9], norm(self.dx[6:9]))
+
+        # Different performance of the two above..
         
+        print("\ng: \n", self.x[16:])
         self.x[0:3] += self.dx[0:3]
         self.x[3:6] += self.dx[3:6]
-        self.x[6:10] = self.quaternion_product(self.x[6:10], np.array([q_dtheta]).T)
+        self.x[6:10] = self.quaternion_product(self.x[6:10], q_dtheta) #np.array([q_dtheta]).T)
         self.x[10:13] += self.dx[9:12]
         self.x[13:16] += self.dx[12:15]
         self.x[16:] += self.dx[15:]
@@ -274,14 +325,14 @@ class QEKF:
             P_hat   (mxm array) : Reset covariances
             """
 
-        d_theta = self.dx[6:9]
+        dtheta = self.dx[6:9]
         # Reset the error-state estimate following equation (285)
         self.dx = np.zeros((18,1))
 
         # Form G and reset the covariances following equation (286)
         G = np.zeros((18,18))
         G[:6,:6] = np.eye(6)
-        G[6:9,6:9] = np.eye(3) - self.cross((1/2)*d_theta)
+        G[6:9,6:9] = np.eye(3) - self.cross((1/2)*dtheta)
         G[9:18,9:18] = np.eye(9)
 
         self.P = G@self.P@G.T
@@ -305,12 +356,12 @@ class QEKF:
         
         x0, x1, x2 = x[:]
 
-        return np.array([[0,   -x2[0],  x1[0]],
-                        [ x2[0],  0,   -x0[0]],
-                        [-x1[0],  x0[0],     0]])
+        return np.array([[0.0,   -x2[0],  x1[0]],
+                        [ x2[0],  0.0,   -x0[0]],
+                        [-x1[0],  x0[0],   0.0]])
 
     @staticmethod
-    def rodrigues(self, omega, dt):
+    def rodrigues(self, omega, phi):
         """Returns rotation matrix defined by rotation vector phi through the exponential map equation (78)
 
         Args:
@@ -321,8 +372,12 @@ class QEKF:
         Returns:
             rot_mat (3,3 ndarray) : Rotation matrix
             """
-        
-        R = np.eye(3)*np.cos(dt) + self.cross(omega)*np.sin(dt) + omega@omega.T*(1-np.cos(dt))
+        if phi == 0:
+            return np.eye(3)
+
+        omega = omega/norm(omega)
+        #R = np.eye(3)*np.cos(phi) + self.cross(omega)*np.sin(phi) + omega@omega.T*(1-np.cos(phi))
+        R = np.eye(3) + np.sin(phi)*self.cross(omega) + (1-np.cos(phi))*(omega@omega.T - np.eye(3))
         return R
 
     @staticmethod
@@ -335,11 +390,11 @@ class QEKF:
 
         Returns:
             R          (3,3 ndarray) : Rotation matrix
-            """
+            """        
         q_v = quaternion[1:]
-        q_w = quaternion[0][0]
+        q_w = quaternion[0,0]
 
-        R = (q_w**2 - (q_v.T@q_v)[0][0])*np.eye(3) + 2*q_v@q_v.T + 2*q_w*self.cross(q_v)
+        R = (q_w**2 - (q_v.T@q_v)[0,0])*np.eye(3) + 2*q_v@q_v.T + 2*q_w*self.cross(q_v)
         return R
 
     @staticmethod
@@ -354,12 +409,15 @@ class QEKF:
         Returns:
             q       (4,1 ndarray) : Normalized quaternion
             """
+        if norm(u) == 0:
+            return np.array([[1.0], [0.0], [0.0], [0.0]])
 
-        q_v = u * np.sin(phi/2)
+
         q_w = np.cos(phi/2)
+        q_v = (u/norm(u)) * np.sin(phi/2)
         q = np.block([[q_w],[q_v]])
 
-        q = q * (1/norm(q))
+        q = q/norm(q)
         return q
 
 
@@ -384,5 +442,5 @@ class QEKF:
                              [p_w*q_y - p_x*q_z + p_y*q_w + p_z*q_x],
                              [p_w*q_z + p_x*q_y - p_y*q_x + p_z*q_w]])
 
-        qproduct = (1/norm(qproduct)) * qproduct
+        qproduct = qproduct/norm(qproduct)
         return qproduct

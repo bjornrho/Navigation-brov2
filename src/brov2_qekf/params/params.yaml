@@ -7,3 +7,5 @@
     std_a_bias: 0.0
     std_gyro_bias: 0.0
     dvl_offset: [2.0, 2.0, 2.0]
+    barometer_offset: [0.0, 0.0, 0.0]
+    imu_offset: [0.0, 0.0, 0.0]

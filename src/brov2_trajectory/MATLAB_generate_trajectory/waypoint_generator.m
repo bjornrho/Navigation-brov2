@@ -108,10 +108,10 @@ time_offset = 1;
 
 % Waypoint definitions
 origo = [0,0,0];
-wp_1 = [0,0,-1];
-wp_2 = [1,0,-1];
-wp_3 = [1,-0.5,-1];
-wp_4 = [0,-0.5,-1];
+wp_1 = [0,0,1];
+wp_2 = [1,0,1];
+wp_3 = [1,-0.5,1];
+wp_4 = [0,-0.5,1];
 
 
 % Time of Arrival definitions

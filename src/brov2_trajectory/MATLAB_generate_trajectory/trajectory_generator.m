@@ -14,15 +14,15 @@ trajectory = waypointTrajectory(constraints(:,2:4), ...
 tInfo = waypointInfo(trajectory)
 
 %% Plotting
-figure(1)
+fig = figure(1)
 plot3(tInfo.Waypoints(1,1),tInfo.Waypoints(1,2),tInfo.Waypoints(1,3),'b*')
-title('Position')
-%axis([-10,180,-75,75,-25,5])
+%axis([-10,180,-75,75,-5,25])
 axis([-3,3,-3,3,-3,3])
 xlabel('North')
 ylabel('East')
 grid on
 daspect([1 1 1])
+set(gca, 'ZDir','reverse')
 hold on
 
 %% Accumulating trajectory
@@ -37,7 +37,7 @@ count = 1;
 while ~isDone(trajectory)
    [pos(count,:),orient(count),vel(count,:),acc(count,:),angVel(count,:)] = trajectory();
    
-   plot3(pos(count,1),pos(count,2),pos(count,3),'bo')
+   plot3(pos(count,1),pos(count,2),pos(count,3),'o')
 
    %pause(trajectory.SamplesPerFrame/trajectory.SampleRate)
    count = count + 1;
@@ -62,9 +62,9 @@ roughAngAcc = [zeros(1,3); roughAngAcc];
 [real,i,j,k] = parts(orient)
 
 trajectory_matrix = [pos,real,i,j,k,vel,acc,angVel,roughAngAcc];
-trajectory_matrix(end,:) = []; % pop last row which doesn't cont
-%writematrix(trajectory_matrix,'horizontal_trajectory.csv','Delimiter','comma')
-writematrix(trajectory_matrix,'pool_trajectory.csv','Delimiter','comma')
+trajectory_matrix(end,:) = []; % pop last row which doesn't contain trajectory data
+%writematrix(trajectory_matrix,'~/Navigation-brov2/trajectories/horizontal_trajectory.csv','Delimiter','comma')
+writematrix(trajectory_matrix,'~/Navigation-brov2/trajectories/pool_trajectory.csv','Delimiter','comma')
 
 
 %% IMU rotation
@@ -73,7 +73,17 @@ rot_y = @(theta) [cos(theta) 0 sin(theta);0 1 0;-sin(theta) 0 cos(theta)];
 rot_z = @(theta) [cos(theta) -sin(theta) 0;sin(theta) cos(theta) 0;0 0 1];
 
 rot_xy = rot_x(pi/2) * rot_y(pi);
-rot_zx = rot_z(pi) * rot_x(pi/2);
-quat_yx = rotm2quat(rot_xy)
-quat_zx = rotm2quat(rot_zx)
+rot_zx = rot_z(pi/2) * rot_x(pi/2);
+
+quat_yx = rotm2quat(rot_xy);
+quat_zx = rotm2quat(rot_zx);
+
+rot_enu_to_ned = rot_z(-pi/2) * rot_y(pi)
+quat_enu_to_ned = rotm2quat(rot_enu_to_ned)
+rotm2quat(rot_z(pi))
+
+%% Storing 3d Plot
+%set(fig,'renderer','Painters')
+%saveas(fig,'trajectory','epsc')
+
 

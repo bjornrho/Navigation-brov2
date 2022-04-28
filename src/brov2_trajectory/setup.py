@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'trajectory_publisher = brov2_trajectory.trajectory_publisher_node_main:main',
+            'brov2_trajectory_exe = brov2_trajectory.trajectory_publisher_node_main:main',
         ],
     },
 )

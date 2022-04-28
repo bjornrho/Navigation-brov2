@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'sonar_data_processor = brov2_sonar_processing.sonar_processing_node_main:main',
+            'brov2_sonar_processing_exe = brov2_sonar_processing.sonar_processing_node_main:main',
         ],
     },
 )

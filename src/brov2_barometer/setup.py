@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'barometer_publisher = brov2_barometer.barometer_data_publisher_node_main:main',
+            'brov2_barometer_exe = brov2_barometer.barometer_data_publisher_node_main:main',
         ],
     },
 )

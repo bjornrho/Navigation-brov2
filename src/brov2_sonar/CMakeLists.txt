@@ -11,12 +11,12 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(brov2_interfaces REQUIRED)
 
-add_executable(SonarPublisher src/sonar_publisher_node.cpp src/sonar_publisher_node_main.cpp src/DSSPParser.cpp src/DVSFileWriter.cpp src/EthernetSonarAPI.cpp)
-ament_target_dependencies(SonarPublisher rclcpp std_msgs brov2_interfaces)
-#target_include_directories(SonarPublisher PUBLIC /home/bjornar/installs/EthernetSonarAPI)
+add_executable(brov2_sonar_exe src/sonar_publisher_node.cpp src/sonar_publisher_node_main.cpp src/DSSPParser.cpp src/DVSFileWriter.cpp src/EthernetSonarAPI.cpp)
+ament_target_dependencies(brov2_sonar_exe rclcpp std_msgs brov2_interfaces)
+#target_include_directories(brov2_sonar_exe PUBLIC /home/bjornar/installs/EthernetSonarAPI)
 
 install(TARGETS
-  SonarPublisher
+  brov2_sonar_exe
   DESTINATION lib/${PROJECT_NAME}
 )
 

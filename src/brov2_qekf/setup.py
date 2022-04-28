@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'state_publisher = brov2_qekf.state_estimate_subscribe_and_publish_node_main:main',
+            'brov2_qekf_exe = brov2_qekf.state_estimate_subscribe_and_publish_node_main:main',
         ],
     },
 )

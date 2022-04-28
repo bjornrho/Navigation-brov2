@@ -3,13 +3,13 @@ from telnetlib import PRAGMA_HEARTBEAT
 import numpy as np
 from numpy.linalg import inv
 from numpy.linalg import norm
-from scipy.spatial.transform import Rotation
+
 
 
 # Implementation of the Quaternion based Extended Kalman Filter from Joan Solà's article: https://arxiv.org/abs/1711.02508
 # and the qekf implementation from FRoSt Lab available at https://bitbucket.org/frostlab/underwateriekf/src/main/
 class QEKF:
-    def __init__(self, x_0, dx_0, P_0, std_a, std_gyro, std_dvl, std_depth, std_a_bias, std_gyro_bias, 
+    def __init__(self, x_0, dx_0, P_0, std_a, std_gyro, std_dvl, std_depth, std_orientation, std_a_bias, std_gyro_bias, 
                  dvl_offset, barometer_offset, imu_offset):
         """Initialization of the QEKF
 
@@ -21,12 +21,42 @@ class QEKF:
             std_gyro                      : Gyrometer Gaussian noise
             std_dvl                       : Dvl Gaussian noise
             std_depth                     : Pressure sensor Gaussian noise
+            std_orientation               : Orientation estimate BNO055 Gaussian noise
             std_a_bias                    : Accelerometer bias
             std_gyro_bias                 : Gyrometer bias
             dvl_offset        (3 ndarray) : Offset value for DVL placement on ROV
             barometer_offset  (3 ndarray) : Offset value for barometer placement on ROV
             imu_offset        (3 ndarray) : Offset value for IMU placement on ROV
             """
+        
+        # Resetting filter to initialization values
+        self.filter_reset(x_0, dx_0, P_0, std_gyro, std_a, std_dvl, std_depth, std_orientation, std_gyro_bias, std_a_bias)
+
+        # Defining offset values and previous IMU input (to be used accounting for offset)
+        self.dvl_offset = np.array(dvl_offset).reshape(-1,1)
+        self.barometer_offset = np.array(barometer_offset).reshape(-1,1)
+        self.imu_offset = np.array(imu_offset).reshape(-1,1)
+        self.last_u = np.zeros((2,3))
+
+
+
+
+
+    def filter_reset(self, x_0, dx_0, P_0, std_gyro, std_a, std_dvl, std_depth, 
+                                             std_orientation, std_a_bias, std_gyro_bias):
+        """Resetting filter to initialization values
+
+        Args:
+            x_0                 (19 list) : Initial starting point of nominal state
+            dx_0             (18 ndarray) : Initial starting point of error-state  
+            P_0             (18x18 array) : Initial covariance of error-state
+            std_a                         : Accelerometer Gaussian noise
+            std_gyro                      : Gyrometer Gaussian noise
+            std_dvl                       : Dvl Gaussian noise
+            std_depth                     : Pressure sensor Gaussian noise
+            std_orientation               : Orientation estimate BNO055 Gaussian noise
+            std_a_bias                    : Accelerometer bias
+            std_gyro_bias                 : Gyrometer bias"""
         
         # Initializing nominal state, error-state (mean zero) and covariance
         self.x = np.array(x_0).reshape(-1,1)
@@ -38,14 +68,9 @@ class QEKF:
         self.std_a = std_a
         self.std_dvl = std_dvl
         self.std_depth = std_depth
+        self.std_orientation = std_orientation
         self.std_gyro_bias = std_gyro_bias
         self.std_a_bias = std_a_bias
-
-        # Defining offset values and previous IMU input (to be used accounting for offset)
-        self.dvl_offset = np.array(dvl_offset).reshape(-1,1)
-        self.barometer_offset = np.array(barometer_offset).reshape(-1,1)
-        self.imu_offset = np.array(imu_offset).reshape(-1,1)
-        self.last_u = np.zeros((2,3))
 
 
 
@@ -67,8 +92,6 @@ class QEKF:
 
         a_m = u[0].reshape(-1,1)
         omega_m = u[1].reshape(-1,1)
-        #print("Imu meas: \n", a_m)
-        #print(g)
 
         R_q = self.quaternion_to_rotation_matrix(self, q)
         phi = norm((omega_m - omega_b))*dt
@@ -115,7 +138,7 @@ class QEKF:
 
         # Jacobian wrt. the error following equation (270)
         F_x = np.block([[I,     I*dt,   zero,                                           zero,   zero,   zero],
-                        [zero,  I,      -R@self.cross(a)*dt,                            -R*dt,  zero,   -I*dt], #zero for gravity?
+                        [zero,  I,      -R@self.cross(a)*dt,                            -R*dt,  zero,   -I*dt],
                         [zero,  zero,   self.rodrigues(self,omega,norm(omega)*dt).T,    zero,   -I*dt,  zero],
                         [zero,  zero,   zero,                                           I,      zero,   zero],
                         [zero,  zero,   zero,                                           zero,   I,      zero],
@@ -151,7 +174,7 @@ class QEKF:
         H_x = np.zeros((4,19))
         H_x[:,6:10] = np.eye(4)
 
-        V = np.eye(4) * (0.0001**2)
+        V = np.eye(4) * (self.std_orientation**2)
         
         Q_dtheta = (1/2)*np.array([[-q_x,   -q_y,   -q_z],
                                    [q_w,    -q_z,   q_y],
@@ -193,10 +216,10 @@ class QEKF:
 
         H_x = np.zeros((1,19))
         H_x[0,2] = 1
-        H_x[0,6] = 2*(q_y*self.barometer_offset[0] - q_x*self.barometer_offset[1] + q_w*self.barometer_offset[2])
-        H_x[0,7] = 2*(q_z*self.barometer_offset[0] - q_w*self.barometer_offset[1] - q_x*self.barometer_offset[2])
-        H_x[0,8] = 2*(q_w*self.barometer_offset[0] + q_z*self.barometer_offset[1] - q_y*self.barometer_offset[2])
-        H_x[0,9] = 2*(q_x*self.barometer_offset[0] + q_y*self.barometer_offset[1] + q_z*self.barometer_offset[2])
+        H_x[0,6] = (2*(q_y*self.barometer_offset[0] - q_x*self.barometer_offset[1] + q_w*self.barometer_offset[2]))
+        H_x[0,7] = (2*(q_z*self.barometer_offset[0] - q_w*self.barometer_offset[1] - q_x*self.barometer_offset[2]))
+        H_x[0,8] = (2*(q_w*self.barometer_offset[0] + q_z*self.barometer_offset[1] - q_y*self.barometer_offset[2]))
+        H_x[0,9] = (2*(q_x*self.barometer_offset[0] + q_y*self.barometer_offset[1] + q_z*self.barometer_offset[2]))
 
         V = self.std_depth**2
         
@@ -213,7 +236,7 @@ class QEKF:
         
         H = H_x@X_dx
 
-        innovation = depth_measurement - self.x[2] + (self.quaternion_to_rotation_matrix(self, self.x[6:10]).T@self.barometer_offset)[2]
+        innovation = depth_measurement - self.x[2] + (self.quaternion_to_rotation_matrix(self, self.x[6:10]).T@self.barometer_offset)[2] #Correct sign for offset?
 
         # Defining the Kalman gain
         K = self.P@H.T*inv(H@self.P@H.T + V)
@@ -246,7 +269,7 @@ class QEKF:
         omega_m = self.last_u[1].reshape(-1,1)
         omega_b = self.x[13:16]
         
-        z = dvl_measurement - (self.dvl_offset*(omega_m - omega_b))[:2]
+        z = dvl_measurement - (self.dvl_offset*(omega_m - omega_b))[:2] # should be @ (?)
 
         # Defining the Jacobian H and the DVL covariance V
         H_x = np.zeros((2,19))
@@ -301,7 +324,7 @@ class QEKF:
 
         # Different performance of the two above..
         
-        print("\ng: \n", self.x[16:])
+        #print("\ng: \n", self.x[16:])
         self.x[0:3] += self.dx[0:3]
         self.x[3:6] += self.dx[3:6]
         self.x[6:10] = self.quaternion_product(self.x[6:10], q_dtheta) #np.array([q_dtheta]).T)

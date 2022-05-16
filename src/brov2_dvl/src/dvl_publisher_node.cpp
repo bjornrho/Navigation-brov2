@@ -44,7 +44,6 @@ std::string DVLPublisher::getData(){
         }
         raw_data = raw_data + buf;
     }
-
     return raw_data;
 }
 

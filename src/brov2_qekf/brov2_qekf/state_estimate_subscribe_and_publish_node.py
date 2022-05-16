@@ -22,22 +22,23 @@ class StateEstimateSubPub(Node):
         self.declare_parameters(
             namespace='',
             parameters=[
-                ('x_0',[0.0, 0.0, 1.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-                ('std_a', np.sqrt(0.017)),
-                ('std_gyro', np.sqrt(0.04)),
-                ('std_dvl', 0.2626),
-                ('std_depth', 0.0255),
-                ('std_orientation', (3/180*np.pi)),
-                ('std_a_bias', 0.0014),
-                ('std_gyro_bias', 0.0038),
-                ('dvl_offset', [-0.020, -0.100, 0.115]),
-                ('barometer_offset', [-0.175, -0.015, -0.05]),
-                ('imu_offset', [0.055, 0.033, -0.03]),
+                ('x_0',[0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+                ('std_a',               4.862*10**-1),                  #datasheet: (190 * 9.81 * 10**-6 * np.sqrt(100))
+                ('std_gyro',            1.298*10**-4),                  #datasheet: (0.3 * (np.pi/180) * np.sqrt(100))
+                ('std_dvl',             0.01),
+                ('std_depth',           6.090*10**-6),
+                ('std_orientation',     8.404*10**-7),                  #datasheet: (3*np.pi/180)
+                ('std_a_bias',          4.578*10**-2),                  #datasheet: 0.0014
+                ('std_gyro_bias',       2.033*10**-4),                  #datasheet: 0.0038
+                ('dvl_offset',          [-0.020, -0.095, 0.133]),
+                ('barometer_offset',    [-0.175, -0.015, -0.05]),
+                ('imu_offset',          [0.057, 0.027, -0.025]),
+                ('store_NIS',           False),
             ]
         )
 
         (self.x_0,self.std_a,self.std_gyro,self.std_dvl,self.std_depth,self.std_orientation, self.std_a_bias,
-        self.std_gyro_bias,self.dvl_offset,self.barometer_offset,self.imu_offset) = self.get_parameters(['x_0','std_a',
+        self.std_gyro_bias,self.dvl_offset,self.barometer_offset,self.imu_offset,self.store_NIS) = self.get_parameters(['x_0','std_a',
                                                                                                          'std_gyro',
                                                                                                          'std_dvl',
                                                                                                          'std_depth',
@@ -46,7 +47,8 @@ class StateEstimateSubPub(Node):
                                                                                                          'std_gyro_bias',
                                                                                                          'dvl_offset',
                                                                                                          'barometer_offset',
-                                                                                                         'imu_offset'])
+                                                                                                         'imu_offset',
+                                                                                                         'store_NIS'])
         
         # Initializing nominal state, error-state, covariances and the QEKF
         self.initialized = False
@@ -57,9 +59,9 @@ class StateEstimateSubPub(Node):
         self.q_offset = None
 
         # Initializing subscribers for sensors
-        self.dvl_subscription = self.create_subscription(DVL, 'dvl/velocity_estimate', self.dvl_vel_sub, 10)
+        self.dvl_subscription = self.create_subscription(DVL, 'dvl/velocity_estimate', self.dvl_vel_sub, 5)
         self.imu_subscription = self.create_subscription(Imu, 'bno055/imu', self.imu_sub, 10)
-        self.barometer_subscription = self.create_subscription(Barometer, 'barometer/barometer_data', self.barometer_sub, 10)
+        self.barometer_subscription = self.create_subscription(Barometer, 'barometer/barometer_data', self.barometer_sub, 5)
 
         # Initialization of state estimate publisher
         self.state_estimate_publisher = self.create_publisher(Odometry, '/CSEI/observer/odom', 10)
@@ -75,6 +77,12 @@ class StateEstimateSubPub(Node):
         self.srv_orientation = self.create_service(Trigger, 'brov2_qekf/set_orient_offset',self.srv_set_yaw_offset)
         self.srv_filter_reset = self.create_service(Trigger, 'brov2_qekf/reset_qekf',self.srv_reset_qekf)
 
+        # Initializing running variance estimation variables
+        self.variance_initialized = False
+        self.previous_measurement = None
+        self.M = None
+        self.S = None
+        self.k = 1
 
 
     ### Services
@@ -101,7 +109,11 @@ class StateEstimateSubPub(Node):
 
 
     def srv_reset_qekf(self, request, response):
-        self.QEKF.filter_reset(self.x_0.value, np.zeros((18,1)), np.eye(18),self.std_a.value, 
+        # Resetting filter, but keeping the previous depth measurement
+        x_0_init = self.x_0.value
+        x_0_init[2] = self.current_barometer.depth
+        
+        self.QEKF.filter_reset(x_0_init, np.zeros((18,1)), np.eye(18),self.std_a.value, 
                         self.std_gyro.value, self.std_dvl.value, self.std_depth.value, self.std_orientation.value, 
                         self.std_a_bias.value, self.std_gyro_bias.value)
 
@@ -116,11 +128,20 @@ class StateEstimateSubPub(Node):
     def imu_sub(self, msg):
         # Getting stamp of previous imu message and storing the current message
         previous_stamp = self.current_imu.header.stamp
+
+        ## RELATED TO RUNNING COVARIANCE COMPUTATION
+        #self.previous_measurement = np.array([[self.current_imu.linear_acceleration.x],
+        #                                      [self.current_imu.linear_acceleration.y],
+        #                                      [self.current_imu.linear_acceleration.z]])
+        
         self.current_imu = msg
+        
         # Orientation measurements from BNO055 comes in ENU and must be converted to NED
         q_ned = self.ENU_to_NED_conversion(np.array([[msg.orientation.w],[msg.orientation.x],
                                                     [msg.orientation.y],[msg.orientation.z]]))
+        #q_ned = np.array([[msg.orientation.w],[msg.orientation.x],[msg.orientation.y],[msg.orientation.z]])
         if self.initialized:
+            self.k += 1
             # Fetching dt
             t_2 = self.current_imu.header.stamp.sec + self.current_imu.header.stamp.nanosec*(10**(-9))
             t_1 = previous_stamp.sec + previous_stamp.nanosec*(10**(-9))
@@ -138,7 +159,6 @@ class StateEstimateSubPub(Node):
             self.dx, self.P = self.QEKF.predict(u, dt)
 
             # Update orientation with bno055 estimate - making up for stored offset values
-            #q = np.array([[msg.orientation.w],[msg.orientation.x],[msg.orientation.y],[msg.orientation.z]])
             self.q_offset = self.get_parameter('orientation_offset').get_parameter_value().double_array_value
 
             q = self.QEKF.quaternion_product(np.array([self.q_offset]).T, q_ned)
@@ -168,14 +188,14 @@ class StateEstimateSubPub(Node):
             self.QEKF = qekf.QEKF(self.x, self.dx, self.P, self.std_a.value, self.std_gyro.value, self.std_dvl.value, 
                                   self.std_depth.value, self.std_orientation.value, self.std_a_bias.value, 
                                   self.std_gyro_bias.value, self.dvl_offset.value, self.barometer_offset.value, 
-                                  self.imu_offset.value)
+                                  self.imu_offset.value, self.store_NIS.value)
 
             # Setting offset such that the filter gets initialized at [1.0, 0.0, 0.0, 0.0]
-            offset_ned = q_ned
-            yaw_offset = self.yaw_from_quaternion(offset_ned)
+            yaw_offset = self.yaw_from_quaternion(q_ned)
             q_yaw = np.array([[np.cos(yaw_offset/2)],[0.0],[0.0],[np.sin(yaw_offset/2)]])
             q_yaw /= norm(q_yaw)
             q_yaw[1:] = -q_yaw[1:]
+
 
             orientation_offset = Parameter('orientation_offset', Parameter.Type.DOUBLE_ARRAY, (q_yaw.T[0]).tolist())
 
@@ -191,6 +211,13 @@ class StateEstimateSubPub(Node):
             # Storing the current message and fetching depth measurement
             self.current_barometer = msg
             depth_measurement = self.current_barometer.depth
+
+            #if not self.variance_initialized:
+            ## Defining variables for running variance computation
+            #    self.M = self.current_barometer.depth
+            #    self.S = 0
+            #    self.variance_initialized = True
+            #print(self.computing_running_variance(depth_measurement))
 
             # Updating QEKF with depth measurement
             self.dx, self.P = self.QEKF.update_depth(depth_measurement)
@@ -227,12 +254,10 @@ class StateEstimateSubPub(Node):
             dvl_covariance = msg.covariance.reshape((3,3))
 
             if self.current_vel.velocity_valid:
-                # Updating QEKF with DVL measurement 
-                # (using only x- and y-values since the flat-floor assumption is not necessarily valid)
-                # THIS IS NOT CORRECT. WE SHOULD ORIENT BACK TO NED FOR BOTH BOTH MEASUREMENT AND COVARIANCE (R.T z and R.T P R)
-                # AND FURTHER USE ONLY X AND Y COMPONENTS OF THESE
-                R = self.QEKF.quaternion_to_rotation_matrix(self.QEKF, np.array(self.x[6:10]).reshape(-1,1))
-                self.dx, self.P = self.QEKF.update_dvl((R.T@dvl_measurement)[:2], (R.T@dvl_covariance@R)[:2,:2])
+                # Updating QEKF with DVL measurement
+                #print("DVL measurement: \n", dvl_measurement)
+                #print("DVL measurement oriented: \n", (R.T@dvl_measurement)[:2])
+                self.dx, self.P = self.QEKF.update_dvl(dvl_measurement, dvl_covariance)
 
                 # Injecting observed error-state into nominal state 
                 self.x = self.QEKF.inject()
@@ -246,13 +271,21 @@ class StateEstimateSubPub(Node):
                 self.current_state_estimate.pose.pose.position = Point(x=self.x[0][0], y=self.x[1][0], z=self.x[2][0])
                 # Orientation
                 self.current_state_estimate.pose.pose.orientation = Quaternion(w=self.x[6][0], x=self.x[7][0],
-                                                                           y=self.x[8][0], z=self.x[9][0])
+                                                                               y=self.x[8][0], z=self.x[9][0])
                 # Linear acceleration
                 self.current_state_estimate.twist.twist.linear = self.current_imu.linear_acceleration
                 # Angular velocity
                 self.current_state_estimate.twist.twist.angular = self.current_imu.angular_velocity
 
                 self.state_estimate_publisher.publish(self.current_state_estimate)
+
+    def computing_running_variance(self, measurement):
+        prev_M = self.M
+        self.M = self.M + (measurement - self.M) / self.k
+        self.S = self.S + (measurement - prev_M)*(measurement - self.M)
+        
+        return self.S/(self.k-1)
+
 
     @staticmethod
     def ENU_to_NED_conversion(quaternion):

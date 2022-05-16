@@ -1,6 +1,8 @@
 from argparse import ZERO_OR_MORE
 from telnetlib import PRAGMA_HEARTBEAT
+import csv
 import numpy as np
+from datetime import datetime
 from numpy.linalg import inv
 from numpy.linalg import norm
 
@@ -10,7 +12,7 @@ from numpy.linalg import norm
 # and the qekf implementation from FRoSt Lab available at https://bitbucket.org/frostlab/underwateriekf/src/main/
 class QEKF:
     def __init__(self, x_0, dx_0, P_0, std_a, std_gyro, std_dvl, std_depth, std_orientation, std_a_bias, std_gyro_bias, 
-                 dvl_offset, barometer_offset, imu_offset):
+                 dvl_offset, barometer_offset, imu_offset, store_NIS):
         """Initialization of the QEKF
 
         Args:
@@ -27,6 +29,7 @@ class QEKF:
             dvl_offset        (3 ndarray) : Offset value for DVL placement on ROV
             barometer_offset  (3 ndarray) : Offset value for barometer placement on ROV
             imu_offset        (3 ndarray) : Offset value for IMU placement on ROV
+            store_NIS                bool : Storing of NIS values for orientation, depth and velocity
             """
         
         # Resetting filter to initialization values
@@ -38,6 +41,16 @@ class QEKF:
         self.imu_offset = np.array(imu_offset).reshape(-1,1)
         self.last_u = np.zeros((2,3))
 
+        # NIS-related initialization
+        self.IMU_NIS_counter = 0
+        self.store_NIS = store_NIS
+        file_directory = "src/brov2_qekf/NIS_values/"
+        file_name = datetime.now().strftime("%Y%m%d-%H%M%S" + ".csv")
+        if self.store_NIS:
+            self.NIS_file = open(file_directory + file_name, "a+")
+            self.NIS_writer = csv.writer(self.NIS_file)
+            self.NIS_writer.writerow([np.nan, np.nan, np.nan,
+                                      std_gyro, std_a, std_depth, std_gyro_bias, std_a_bias])
 
 
 
@@ -190,7 +203,6 @@ class QEKF:
         H = H_x@X_dx
 
         innovation = np.array([[(q[0]-q_w)[0]],[(q[1]-q_x)[0]],[(q[2]-q_y)[0]],[(q[3]-q_z)[0]]])
-        # Defining the Kalman gain
         K = self.P@H.T@inv(H@self.P@H.T + V)
         
         # Correcting state and covariance according to equations (275) and (276)
@@ -198,18 +210,28 @@ class QEKF:
         #P_hat = (np.eye(18)-K@H)@self.P
         self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + K@V@K.T
 
+        if self.store_NIS and self.IMU_NIS_counter%10==0:
+            NIS = (innovation.T@inv(H@self.P@H.T + V)@innovation)[0,0]
+            self.NIS_writer.writerow([NIS, np.nan, np.nan])
+        self.IMU_NIS_counter += 1 # IMU publishing at a whopping 100 Hz. Limiting the amount of NIS data stored.
+
         return self.dx, self.P
 
 
-    def update_depth(self, depth_measurement):
+    def update_depth(self, depth_measurement_raw):
         """Runs correction step of QEKF
 
         Args:
-            depth_measurement   : Incoming depth measurement from the pressure sensor (corresponding to x[2])                       
+            depth_measurement_raw  : Incoming depth measurement from the barometer (corresponding to x[2])                       
         Returns:
             dx_hat  (19x1 ndarray) : Corrected state
             P_hat    (18x18 array) : Corrected covariances
             """
+
+        # Account for pressure sensor offset (is the sign correct??)
+        R = self.quaternion_to_rotation_matrix(self, self.x[6:10])
+        depth_measurement_corrected = depth_measurement_raw + (R.T@self.barometer_offset)[2]
+
 
         # Defining the Jacobian H and the depth covariance V
         q_w,q_x,q_y,q_z = self.x[6:10].T[0]
@@ -236,9 +258,7 @@ class QEKF:
         
         H = H_x@X_dx
 
-        innovation = depth_measurement - self.x[2] + (self.quaternion_to_rotation_matrix(self, self.x[6:10]).T@self.barometer_offset)[2] #Correct sign for offset?
-
-        # Defining the Kalman gain
+        innovation = depth_measurement_corrected - self.x[2]
         K = self.P@H.T*inv(H@self.P@H.T + V)
         
         # Correcting state and covariance according to equations (275) and (276)
@@ -246,32 +266,38 @@ class QEKF:
         #P_hat = (np.eye(18)-K@H)@self.P
         self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + V*K@K.T #matmul trouble due to scalar V using K@V@K.T
 
+        if self.store_NIS:
+            NIS = (innovation*inv(H@self.P@H.T + V)*innovation)[0,0]
+            self.NIS_writer.writerow([np.nan, NIS, np.nan])
+
         return self.dx, self.P
 
 
 
-    def update_dvl(self, dvl_measurement, dvl_covariance=None):
+    def update_dvl(self, dvl_measurement_raw_body, dvl_covariance_body):
         """Runs correction step of QEKF
 
         Args:
-            dvl_measurement     (2 ndarray) : Incoming velocity measurement from the dvl corresponding to dx[3:5]
-            dvl_covariance    (2x2 ndarray) : Covariance matrix accompanying DVL measurement, V in equation (274)
+            dvl_measurement_raw_body  (3 ndarray) : Incoming velocity measurement from the DVL (in corresponding frame)
+            dvl_covariance          (3x3 ndarray) : Covariance matrix accompanying DVL measurement, V in equation (274)
 
         Returns:
-            dx_hat  (19x1 ndarray)          : Corrected state
-            P_hat    (18x18 array)          : Corrected covariances
+            dx_hat  (19x1 ndarray)                : Corrected state
+            P_hat    (18x18 array)                : Corrected covariances
             """
-
-        if dvl_covariance is None:
-            dvl_covariance = (np.eye(2)*self.std_dvl)**2
 
         # Account for the DVL offset
         omega_m = self.last_u[1].reshape(-1,1)
         omega_b = self.x[13:16]
-        
-        z = dvl_measurement - (self.dvl_offset*(omega_m - omega_b))[:2] # should be @ (?)
+        dvl_measurement_corrected = dvl_measurement_raw_body - self.cross(omega_m - omega_b)@np.array(self.dvl_offset)
 
-        # Defining the Jacobian H and the DVL covariance V
+        # Orient from body to global NED frame
+        R = self.quaternion_to_rotation_matrix(self, np.array(self.x[6:10]).reshape(-1,1))
+        dvl_measurement_corrected_NED = (R@dvl_measurement_corrected)[:2]
+        dvl_covariance_NED = (R@dvl_covariance_body@R.T)[:2,:2]
+
+
+        # Defining the Jacobian H
         H_x = np.zeros((2,19))
         H_x[:,3:5] = np.eye(2)
 
@@ -280,27 +306,25 @@ class QEKF:
                                    [q_w,    -q_z,   q_y],
                                    [q_z,    q_w,    -q_x],
                                    [-q_y,   q_x,    q_w]]) # Equation (281)
-        
-        # Forming X_dx following equation (280)
         X_dx = np.zeros((19,18))
         X_dx[:6,:6] = np.eye(6)
         X_dx[6:10,6:9] = Q_dtheta
-        X_dx[10:19,9:18] = np.eye(9)
+        X_dx[10:19,9:18] = np.eye(9) # Equation (280)
         
         H = H_x@X_dx
 
-        # Rotation matrix
-        #R_q = self.quaternion_to_rotation_matrix(self, self.x[6:10])
-        innovation = z - self.x[3:5] # NOT SURE ABOUT FRAMES HERE?  z - (R_q.T@self.x[3:6])[:2]
-
-        # Defining the Kalman gain
-        K = self.P@H.T@inv(H@self.P@H.T + dvl_covariance)
+        innovation = dvl_measurement_corrected_NED - self.x[3:5]
+        K = self.P@H.T@inv(H@self.P@H.T + dvl_covariance_NED)
 
         # Correcting state and covariance according to equations (275) and (276)
         self.dx = K@innovation
         
         #self.P = (np.eye(18) - K@H)@self.P
-        self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + K@dvl_covariance@K.T
+        self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + K@dvl_covariance_NED@K.T
+
+        if self.store_NIS:
+            NIS = (innovation.T@inv(H@self.P@H.T + dvl_covariance_NED)@innovation)[0,0]
+            self.NIS_writer.writerow([np.nan, np.nan, NIS])
 
         return self.dx, self.P
 

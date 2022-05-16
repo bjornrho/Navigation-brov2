@@ -29,11 +29,11 @@ class DVLPublisher : public rclcpp::Node
     DVLPublisher()
     : Node("dvl_publisher")
     {
-      velocity_publisher_ = this->create_publisher<brov2_interfaces::msg::DVL>("velocity_estimate", 10);
-      odometry_publisher_ = this->create_publisher<brov2_interfaces::msg::DVLOdom>("position_estimate", 10);
+      velocity_publisher_ = this->create_publisher<brov2_interfaces::msg::DVL>("velocity_estimate", 4);
+      odometry_publisher_ = this->create_publisher<brov2_interfaces::msg::DVLOdom>("position_estimate", 2);
       connectToDVL();
       timer_ = this->create_wall_timer(
-      100ms, std::bind(&DVLPublisher::publisher, this));
+      30ms, std::bind(&DVLPublisher::publisher, this));
     }
 
     void connectToDVL();  

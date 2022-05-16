@@ -19,7 +19,7 @@ class GPSDataPublisher(Node):
 
         ### GPS related initialization
         # Create a serial connection and GPS module instance.
-        uart = serial.Serial("/dev/ttyUSB0", baudrate=9600, timeout=10)
+        uart = serial.Serial("/dev/ttyUSB1", baudrate=9600, timeout=10)
         self.gps = adafruit_gps.GPS(uart, debug=False)
         # Turn on the basic GGA and RMC info (what you typically want)
         self.gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
@@ -28,7 +28,7 @@ class GPSDataPublisher(Node):
         # Bool to keep track of lost and found fix
         self.gps_previous_fix = False
 
-        self.get_logger().info("GPS data pubisher node initialized.")
+        self.get_logger().info("GPS data pubisher node initialized. Waiting for fix.")
 
 
     def gps_read_and_publish(self):

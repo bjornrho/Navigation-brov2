@@ -17,7 +17,7 @@ class BarometerDataPublisher(Node):
         self.sensor = ms5837.MS5837_30BA()
         # self.sensor.setFluidDensity() # Configuring fluid density for fresh or saltwater. Defaulting to fresh water
         if not self.sensor.init():
-            print("Sensor could not be initialized")
+            self.get_logger().info('Sensor could not be initialized')
             exit(1)
         self.get_logger().info('Barometer initialized')
 

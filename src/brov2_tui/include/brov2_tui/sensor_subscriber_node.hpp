@@ -26,7 +26,7 @@ public:
         barometer_subscription_ = this->create_subscription<brov2_interfaces::msg::Barometer>(
           "barometer/barometer_data", 10, std::bind(&SensorSubscriber::barometer_callback, this, _1));
         imu_subscription_ = this->create_subscription<sensor_msgs::msg::Imu>(
-          "bno055/imu/data", 10, std::bind(&SensorSubscriber::imu_callback, this, _1));
+          "bno055/imu", 10, std::bind(&SensorSubscriber::imu_callback, this, _1));
         trajectory_subscription_ = this->create_subscription<bluerov_interfaces::msg::Reference>(
           "/CSE/references", 10, std::bind(&SensorSubscriber::trajectory_reference_callback, this, _1));
         state_subscription_ = this->create_subscription<nav_msgs::msg::Odometry>(

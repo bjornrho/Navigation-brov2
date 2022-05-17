@@ -1,8 +1,9 @@
 
 rotate3d on;
-%% Creating a lawnmower trajectory
-%Choose trajectory to create and simulate
-constraints = horizontal_constraints;
+%% Creating a trajectory
+% Run trajectory_constraint_generator.m to generate trajectory constraints
+% used to generate a trajectory.
+constraints = trajectory_constraints;
 
 trajectory = waypointTrajectory(constraints(:,2:4), ...
     'TimeOfArrival',constraints(:,1), ...
@@ -10,19 +11,20 @@ trajectory = waypointTrajectory(constraints(:,2:4), ...
     'Orientation',quaternion(constraints(:,8:10),'eulerd','ZYX','frame'), ...
     'SampleRate',10);
 
-
 tInfo = waypointInfo(trajectory)
 
 %% Plotting
 fig = figure(1)
 plot3(tInfo.Waypoints(1,1),tInfo.Waypoints(1,2),tInfo.Waypoints(1,3),'b*')
-%axis([-10,180,-75,75,-5,25])
-axis([-3,3,-3,3,-3,3])
+axis([-25,200,-100,100,-5,25]);
+
 xlabel('North')
 ylabel('East')
 grid on
 daspect([1 1 1])
 set(gca, 'ZDir','reverse')
+set(gca, 'YDir','reverse')
+
 hold on
 
 %% Accumulating trajectory
@@ -37,17 +39,15 @@ count = 1;
 while ~isDone(trajectory)
    [pos(count,:),orient(count),vel(count,:),acc(count,:),angVel(count,:)] = trajectory();
    
-   plot3(pos(count,1),pos(count,2),pos(count,3),'o')
-
-   %pause(trajectory.SamplesPerFrame/trajectory.SampleRate)
+   plot3(pos(count,1),pos(count,2),pos(count,3),'bo')
+   
+   pause(trajectory.SamplesPerFrame/trajectory.SampleRate)
    count = count + 1;
 end
 
 %% Getting angular acceleration
 roughAngAcc = diff(angVel,1,1)/(tInfo.TimeOfArrival(end)/(tInfo.TimeOfArrival(end)*trajectory.SampleRate));
 roughAngAcc = [zeros(1,3); roughAngAcc];
-
-
 
 %% Write to csv-file
 %header = [         "pos - north, ",    "pos - east, ",     "pos - z, ", ...
@@ -59,28 +59,15 @@ roughAngAcc = [zeros(1,3); roughAngAcc];
 % fid = fopen('horizontal_trajectory.csv', 'w+');
 % fprintf(fid, header);
 % fclose(fid);
-[real,i,j,k] = parts(orient)
+[real,i,j,k] = parts(orient);
 
 trajectory_matrix = [pos,real,i,j,k,vel,acc,angVel,roughAngAcc];
 trajectory_matrix(end,:) = []; % pop last row which doesn't contain trajectory data
 %writematrix(trajectory_matrix,'~/Navigation-brov2/trajectories/horizontal_trajectory.csv','Delimiter','comma')
-writematrix(trajectory_matrix,'~/Navigation-brov2/trajectories/pool_trajectory.csv','Delimiter','comma')
+%writematrix(trajectory_matrix,'~/Navigation-brov2/trajectories/pool_trajectory.csv','Delimiter','comma')
+%writematrix(trajectory_matrix,'~/Navigation-brov2/trajectories/straight_line_trajectory.csv','Delimiter','comma')
+%writematrix(trajectory_matrix,'~/Navigation-brov2/test.csv','Delimiter','comma')
 
-
-%% IMU rotation
-rot_x = @(theta) [1 0 0;0 cos(theta) -sin(theta);0 sin(theta) cos(theta)];
-rot_y = @(theta) [cos(theta) 0 sin(theta);0 1 0;-sin(theta) 0 cos(theta)];
-rot_z = @(theta) [cos(theta) -sin(theta) 0;sin(theta) cos(theta) 0;0 0 1];
-
-rot_xy = rot_x(pi/2) * rot_y(pi);
-rot_zx = rot_z(pi/2) * rot_x(pi/2);
-
-quat_yx = rotm2quat(rot_xy);
-quat_zx = rotm2quat(rot_zx);
-
-rot_enu_to_ned = rot_z(-pi/2) * rot_y(pi)
-quat_enu_to_ned = rotm2quat(rot_enu_to_ned)
-rotm2quat(rot_z(pi))
 
 %% Storing 3d Plot
 %set(fig,'renderer','Painters')

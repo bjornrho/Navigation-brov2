@@ -10,46 +10,47 @@ from geometry_msgs.msg import Vector3, Quaternion, Twist
 from sensor_msgs.msg import Imu
 from brov2_interfaces.msg import DVL, Barometer
 
+from numpy.linalg import norm
+import math
+import progressbar
+
 
 class TrajectoryPublisher(Node):
 
     def __init__(self):
         # Initialization of trajectory publisher
         super().__init__('trajectory_publisher')
-        self.publisher_ = self.create_publisher(Reference, '/CSE/references', 10)
-        trajectory_period = 1/10  # seconds
+        self.declare_parameter('trajectory_topic_name', '/CSE/references')
+        self.declare_parameter('trajectory_file_name', 'MC_circle.csv')
+        self.declare_parameter('trajectory_period', 1/100)
+        self.declare_parameter('yaw_update_printout', True)
+
+        trajectory_topic_name = self.get_parameter('trajectory_topic_name').get_parameter_value().string_value
+        trajectory_file_name = self.get_parameter('trajectory_file_name').get_parameter_value().string_value
+        trajectory_period = self.get_parameter('trajectory_period').get_parameter_value().double_value
+        self.yaw_print = self.get_parameter('yaw_update_printout').get_parameter_value().bool_value
+
+        self.publisher_ = self.create_publisher(Reference, trajectory_topic_name, 10)
         self.trajectory_timer = self.create_timer(trajectory_period, self.reference_publisher)
         self.trajectory_iterator = 0
 
-        # Initialization of simulated measurements
-        simulate = True
-        if True and simulate:
-            self.current_imu = Imu()
-            self.publisher_imu = self.create_publisher(Imu, '/bno055/imu', 10)
-            imu_period = 1/10
-            self.imu_timer = self.create_timer(imu_period, self.simulate_imu)
-        if True and simulate:
-            self.current_vel = DVL()
-            self.publisher_dvl = self.create_publisher(DVL, 'velocity_estimate', 10)
-            dvl_period = 1/6
-            self.dvl_timer = self.create_timer(dvl_period, self.simulate_dvl)
-        if False and simulate:
-            self.current_barometer = Barometer()
-            self.publisher_barometer = self.create_publisher(Barometer, 'barometer/barometer_data', 10)
-            barometer_period = 1/5
-            self.barometer_timer = self.create_timer(barometer_period, self.simulate_barometer)
-
-
         # Getting trajectories from csv-file
-        file = open('trajectories/horizontal_trajectory.csv')
-        #file = open('trajectories/pool_trajectory.csv')
+        file = open('trajectories/'+trajectory_file_name)
         csvreader = csv.reader(file)
         self.rows = []
         for row in csvreader:
             self.rows.append([float(s) for s in row])
         file.close()
 
-        self.get_logger().info("Trajectory publisher initialized. Start publishing trajectory!")
+        # Printout for progress
+        duration_minutes = (((len(self.rows)) / 100) / 60)
+        duration_seconds = round(((len(self.rows) / 100) % 60))
+        self.pbar = progressbar.ProgressBar(max_value = round(len(self.rows)), redirect_stdout = True)
+        
+        self.get_logger().info("Trajectory publisher initialized.")
+        self.get_logger().info("Executing %s with duration of approximately: %i minutes and %i seconds \n" % 
+                (trajectory_file_name, duration_minutes, duration_seconds))
+
 
     def reference_publisher(self):
         position = Vector3(x=self.rows[self.trajectory_iterator][0],
@@ -60,6 +61,7 @@ class TrajectoryPublisher(Node):
                                  x=self.rows[self.trajectory_iterator][4],
                                  y=self.rows[self.trajectory_iterator][5],
                                  z=self.rows[self.trajectory_iterator][6])
+
 
         velocity = Twist()
         velocity.linear = Vector3(x=self.rows[self.trajectory_iterator][7],
@@ -89,40 +91,37 @@ class TrajectoryPublisher(Node):
 
         if self.trajectory_iterator < len(self.rows)-1:
             self.trajectory_iterator += 1
+            if self.trajectory_iterator % 10 == 0:
+                if self.yaw_print:
+                    yaw = self.yaw_from_quaternion(np.array([[orientation.w],[orientation.x],[orientation.y],[orientation.z]]))
+                    print("Yaw: ", yaw*180/np.pi)   
+                self.pbar.update(self.trajectory_iterator)
         else:
+            self.pbar.finish()
             self.get_logger().info("Trajectory completed!")
             self.destroy_node()
             self.get_logger().info("Node destroyed. Start new instance of reference publisher or switch to TeleOP!")
 
 
-    def simulate_imu(self):
-        self.current_imu.header.stamp = self.get_clock().now().to_msg()
-        self.current_imu.linear_acceleration = Vector3(x=self.rows[self.trajectory_iterator][10],
-                                                       y=self.rows[self.trajectory_iterator][11],
-                                                       z=self.rows[self.trajectory_iterator][12]+9.81)
+    ### HELPER  FUNCTIONS
+    @staticmethod
+    def yaw_from_quaternion(quaternion):
+        """Returns yaw (Euler angle - rotation around z counterclockwise) in radians.
 
-        self.current_imu.angular_velocity = Vector3(x=self.rows[self.trajectory_iterator][13],
-                                                    y=self.rows[self.trajectory_iterator][14],
-                                                    z=self.rows[self.trajectory_iterator][15])
+        Args:
+            quaternion       (4,1 ndarray) : Quaternion of form [w,x,y,z]
 
-        self.current_imu.orientation = Quaternion(w=self.rows[self.trajectory_iterator][3],
-                                                  x=self.rows[self.trajectory_iterator][4],
-                                                  y=self.rows[self.trajectory_iterator][5],
-                                                  z=self.rows[self.trajectory_iterator][6])
 
-        self.publisher_imu.publish(self.current_imu)
-        
+        Returns:
+            yaw_z            (4,1 ndarray) : Normalized quaternion
+            """
 
-    def simulate_dvl(self):
-        self.current_vel.velocity = Vector3(x=self.rows[self.trajectory_iterator][7],
-                                            y=self.rows[self.trajectory_iterator][8],
-                                            z=self.rows[self.trajectory_iterator][9])
-        
-        self.current_vel.covariance = np.eye(3).ravel()
-        self.current_vel.velocity_valid = True
-        
-        self.publisher_dvl.publish(self.current_vel)
+        q_w,q_x,q_y,q_z = quaternion.T[0]
 
-    def simulate_barometer(self):
-        self.current_barometer.depth = self.rows[self.trajectory_iterator][2]
-        self.publisher_barometer.publish(self.current_barometer)
+        t0 = +2.0 * (q_w * q_z + q_x * q_y)
+        t1 = +1.0 - 2.0 * (q_y * q_y + q_z * q_z)
+        yaw_z = math.atan2(t0, t1)
+
+        return yaw_z
+
+    

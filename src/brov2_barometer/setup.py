@@ -13,7 +13,7 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='bjornar',
+    maintainer='Bjoernar Hogstad',
     maintainer_email='bjornar-rh@hotmail.com',
     description='Driver for Bar30 pressure sensor.',
     license='MIT',

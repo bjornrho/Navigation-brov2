@@ -4,7 +4,7 @@
   <name>brov2_barometer</name>
   <version>0.0.0</version>
   <description>Driver for Bar30 pressure sensor.</description>
-  <maintainer email="bjornar-rh@hotmail.com">bjornar</maintainer>
+  <maintainer email="bjornar-rh@hotmail.com">Bjoernar Hogstad</maintainer>
   <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>

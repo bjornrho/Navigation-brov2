@@ -3,9 +3,9 @@
 <package format="3">
   <name>brov2_barometer</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="bjornar.rh@gmail.com">bjornar</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Driver for Bar30 pressure sensor.</description>
+  <maintainer email="bjornar-rh@hotmail.com">bjornar</maintainer>
+  <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

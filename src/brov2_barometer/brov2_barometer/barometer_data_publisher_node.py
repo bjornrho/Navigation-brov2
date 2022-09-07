@@ -9,19 +9,20 @@ class BarometerDataPublisher(Node):
     # Initializer 
     def __init__(self):
         super().__init__('barometer_data_publisher')
-        self.declare_parameter('barometer_topic_name', 'barometer_data')
-        self.declare_parameter('barometer_period', 1/10)
-        self.declare_parameter('fluid_density', 1029) # Default value for sea water (use 997 for fresh water)
+        self.declare_parameters(namespace='',
+                                parameters=[('barometer_topic_name', 'barometer_data'),
+                                            ('barometer_period', 1/10),
+                                            ('fluid_density', 1029)])
 
-        barometer_topic_name = self.get_parameter('barometer_topic_name').get_parameter_value().string_value
-        barometer_period = self.get_parameter('barometer_period').get_parameter_value().double_value
-        fluid_density = self.get_parameter('fluid_density').get_parameter_value().integer_value
+        barometer_topic_name, barometer_period, fluid_density = self.get_parameters(['barometer_topic_name',
+                                                                                    'barometer_period',
+                                                                                    'fluid_density'])
 
-        self.publisher_ = self.create_publisher(Barometer, barometer_topic_name, 10)
-        self.timer = self.create_timer(barometer_period, self.barometer_read_and_publish)
+        self.publisher_ = self.create_publisher(Barometer, barometer_topic_name.value, 10)
+        self.timer = self.create_timer(barometer_period.value, self.barometer_read_and_publish)
 
         self.sensor = ms5837.MS5837_30BA()
-        self.sensor.setFluidDensity(fluid_density)
+        self.sensor.setFluidDensity(fluid_density.value) # Sea water: 1029, Fresh water: 997
         if not self.sensor.init():
             self.get_logger().info('Sensor could not be initialized')
             exit(1)

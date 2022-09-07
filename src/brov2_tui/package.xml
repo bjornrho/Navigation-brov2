@@ -3,9 +3,9 @@
 <package format="3">
   <name>brov2_tui</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="bjornar.rh@gmail.com">bjornar</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Text User Interface visualizing raw data from various sensors.</description>
+  <maintainer email="bjornar-rh@hotmail.com">Bjoernar Hogstad</maintainer>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   

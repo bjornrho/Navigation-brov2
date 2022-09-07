@@ -13,7 +13,6 @@ find_package(brov2_interfaces REQUIRED)
 
 add_executable(brov2_sonar_exe src/sonar_publisher_node.cpp src/sonar_publisher_node_main.cpp src/DSSPParser.cpp src/DVSFileWriter.cpp src/EthernetSonarAPI.cpp)
 ament_target_dependencies(brov2_sonar_exe rclcpp std_msgs brov2_interfaces)
-#target_include_directories(brov2_sonar_exe PUBLIC /home/bjornar/installs/EthernetSonarAPI)
 
 install(TARGETS
   brov2_sonar_exe

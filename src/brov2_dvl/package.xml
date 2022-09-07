@@ -3,9 +3,9 @@
 <package format="3">
   <name>brov2_dvl</name>
   <version>0.0.0</version>
-  <description>This is a package description.</description>
-  <maintainer email="bjornrho@stud.ntnu.no">bjornar</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Driver for A50 DVL sensor.</description>
+  <maintainer email="bjornar-rh@hotmail.com">Bjoernar Hogstad</maintainer>
+  <license>MIT</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   

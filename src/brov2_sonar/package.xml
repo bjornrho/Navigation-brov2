@@ -3,9 +3,9 @@
 <package format="3">
   <name>brov2_sonar</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="bjornar.rh@gmail.com">bjornar</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Driver for OSM Ethernet Sonar System.</description>
+  <maintainer email="bjornar-rh@hotmail.com">Bjoernar Hogstad</maintainer>
+  <license>MIT</license>
 
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>

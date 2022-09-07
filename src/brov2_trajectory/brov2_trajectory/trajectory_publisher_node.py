@@ -11,8 +11,11 @@ from sensor_msgs.msg import Imu
 from brov2_interfaces.msg import DVL, Barometer
 
 from numpy.linalg import norm
-import math
 import progressbar
+
+import sys
+sys.path.append('utility_functions')
+import utility_functions
 
 
 class TrajectoryPublisher(Node):
@@ -20,22 +23,23 @@ class TrajectoryPublisher(Node):
     def __init__(self):
         # Initialization of trajectory publisher
         super().__init__('trajectory_publisher')
-        self.declare_parameter('trajectory_topic_name', '/CSE/references')
-        self.declare_parameter('trajectory_file_name', 'MC_circle.csv')
-        self.declare_parameter('trajectory_period', 1/100)
-        self.declare_parameter('yaw_update_printout', True)
+        self.declare_parameters(namespace='',
+                                parameters=[('trajectory_topic_name', '/CSE/references'),
+                                            ('trajectory_file_name', 'MC_circle.csv'),
+                                            ('trajectory_period', 1/100),
+                                            ('yaw_update_printout', True)])
 
-        trajectory_topic_name = self.get_parameter('trajectory_topic_name').get_parameter_value().string_value
-        trajectory_file_name = self.get_parameter('trajectory_file_name').get_parameter_value().string_value
-        trajectory_period = self.get_parameter('trajectory_period').get_parameter_value().double_value
+        trajectory_topic_name, trajectory_file_name, trajectory_period = self.get_parameters(['trajectory_topic_name',
+                                                                                              'trajectory_file_name',
+                                                                                              'trajectory_period'])
         self.yaw_print = self.get_parameter('yaw_update_printout').get_parameter_value().bool_value
 
-        self.publisher_ = self.create_publisher(Reference, trajectory_topic_name, 10)
-        self.trajectory_timer = self.create_timer(trajectory_period, self.reference_publisher)
+        self.publisher_ = self.create_publisher(Reference, trajectory_topic_name.value, 10)
+        self.trajectory_timer = self.create_timer(trajectory_period.value, self.reference_publisher)
         self.trajectory_iterator = 0
 
         # Getting trajectories from csv-file
-        file = open('trajectories/'+trajectory_file_name)
+        file = open('trajectories/'+trajectory_file_name.value)
         csvreader = csv.reader(file)
         self.rows = []
         for row in csvreader:
@@ -49,7 +53,7 @@ class TrajectoryPublisher(Node):
         
         self.get_logger().info("Trajectory publisher initialized.")
         self.get_logger().info("Executing %s with duration of approximately: %i minutes and %i seconds \n" % 
-                (trajectory_file_name, duration_minutes, duration_seconds))
+                (trajectory_file_name.value, duration_minutes, duration_seconds))
 
 
     def reference_publisher(self):
@@ -93,35 +97,11 @@ class TrajectoryPublisher(Node):
             self.trajectory_iterator += 1
             if self.trajectory_iterator % 10 == 0:
                 if self.yaw_print:
-                    yaw = self.yaw_from_quaternion(np.array([[orientation.w],[orientation.x],[orientation.y],[orientation.z]]))
+                    yaw = utility_functions.yaw_from_quaternion(np.array([[orientation.w],[orientation.x],[orientation.y],[orientation.z]]))
                     print("Yaw: ", yaw*180/np.pi)   
                 self.pbar.update(self.trajectory_iterator)
         else:
             self.pbar.finish()
             self.get_logger().info("Trajectory completed!")
             self.destroy_node()
-            self.get_logger().info("Node destroyed. Start new instance of reference publisher or switch to TeleOP!")
-
-
-    ### HELPER  FUNCTIONS
-    @staticmethod
-    def yaw_from_quaternion(quaternion):
-        """Returns yaw (Euler angle - rotation around z counterclockwise) in radians.
-
-        Args:
-            quaternion       (4,1 ndarray) : Quaternion of form [w,x,y,z]
-
-
-        Returns:
-            yaw_z            (4,1 ndarray) : Normalized quaternion
-            """
-
-        q_w,q_x,q_y,q_z = quaternion.T[0]
-
-        t0 = +2.0 * (q_w * q_z + q_x * q_y)
-        t1 = +1.0 - 2.0 * (q_y * q_y + q_z * q_z)
-        yaw_z = math.atan2(t0, t1)
-
-        return yaw_z
-
-    
+            self.get_logger().info("Node destroyed. Start new instance of trajectory publisher or switch to TeleOP!")

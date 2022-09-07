@@ -95,11 +95,11 @@ class StateEstimateSubPub(Node):
     ### Services
     def srv_set_yaw_offset(self, request, response):
         # Inverse of the current corrected orientation is the same as the complex conjugate ([w,-u])
-        offset_ned = self.ENU_to_NED_conversion(np.array([[self.current_imu.orientation.w],
-                                                          [self.current_imu.orientation.x],
-                                                          [self.current_imu.orientation.y],
-                                                          [self.current_imu.orientation.z]]))
-        yaw_offset = self.yaw_from_quaternion(offset_ned)
+        offset_ned = utility_functions.ENU_to_NED_conversion(np.array([[self.current_imu.orientation.w],
+                                                                       [self.current_imu.orientation.x],
+                                                                       [self.current_imu.orientation.y],
+                                                                       [self.current_imu.orientation.z]]))
+        yaw_offset = utility_functions.yaw_from_quaternion(offset_ned)
         q_yaw = np.array([[np.cos(yaw_offset/2)],[0.0],[0.0],[np.sin(yaw_offset/2)]])
         q_yaw /= norm(q_yaw)
         q_yaw[1:] = -q_yaw[1:]
@@ -165,9 +165,8 @@ class StateEstimateSubPub(Node):
         self.current_imu = msg
         
         # Orientation measurements from BNO055 comes in ENU and must be converted to NED
-        q_ned = self.ENU_to_NED_conversion(np.array([[msg.orientation.w],[msg.orientation.x],
-                                                    [msg.orientation.y],[msg.orientation.z]]))
-        #q_ned = np.array([[msg.orientation.w],[msg.orientation.x],[msg.orientation.y],[msg.orientation.z]])
+        q_ned = utility_functions.ENU_to_NED_conversion(np.array([[msg.orientation.w],[msg.orientation.x],
+                                                                  [msg.orientation.y],[msg.orientation.z]]))
         if self.initialized:
             self.k += 1
             # Fetching dt
@@ -227,7 +226,7 @@ class StateEstimateSubPub(Node):
                                   self.imu_offset.value)
 
             # Setting offset such that the filter gets initialized at [1.0, 0.0, 0.0, 0.0]
-            yaw_offset = self.yaw_from_quaternion(q_ned)
+            yaw_offset = utility_functions.yaw_from_quaternion(q_ned)
             q_yaw = np.array([[np.cos(yaw_offset/2)],[0.0],[0.0],[np.sin(yaw_offset/2)]])
             q_yaw /= norm(q_yaw)
             q_yaw[1:] = -q_yaw[1:]
@@ -338,49 +337,3 @@ class StateEstimateSubPub(Node):
         self.S = self.S + (measurement - prev_M)*(measurement - self.M)
         
         return self.S/(self.k-1)
-
-
-    @staticmethod
-    def ENU_to_NED_conversion(quaternion):
-        """Converts given quaternion from ENU to NED.
-
-        Args:
-            quaternion       (4,1 ndarray) : Quaternion in ENU of form [w,x,y,z]
-
-
-        Returns:
-            qproduct         (4,1 ndarray) : Normalized quaternion in NED
-            """
-        p_w,p_x,p_y,p_z = [0.0, -np.sqrt(1/2), -np.sqrt(1/2), 0.0]
-        q_w,q_x,q_y,q_z = quaternion.T[0]
-        qproduct = np.array([[p_w*q_w - p_x*q_x - p_y*q_y - p_z*q_z],
-                             [p_w*q_x + p_x*q_w + p_y*q_z - p_z*q_y],
-                             [p_w*q_y - p_x*q_z + p_y*q_w + p_z*q_x],
-                             [p_w*q_z + p_x*q_y - p_y*q_x + p_z*q_w]])
-
-        return qproduct/norm(qproduct) 
-
-    @staticmethod
-    def yaw_from_quaternion(quaternion):
-        """Returns yaw (Euler angle - rotation around z counterclockwise) in radians.
-
-        Args:
-            quaternion       (4,1 ndarray) : Quaternion of form [w,x,y,z]
-
-
-        Returns:
-            yaw_z            (4,1 ndarray) : Normalized quaternion
-            """
-
-        q_w,q_x,q_y,q_z = quaternion.T[0]
-
-        t0 = +2.0 * (q_w * q_z + q_x * q_y)
-        t1 = +1.0 - 2.0 * (q_y * q_y + q_z * q_z)
-        yaw_z = math.atan2(t0, t1)
-
-        return yaw_z
-
-
-
-# -2 -10 11.5 trekke fra
-

@@ -5,27 +5,30 @@ from brov2_barometer import ms5837
 from brov2_interfaces.msg import Barometer
 
 
-
 class BarometerDataPublisher(Node):
     # Initializer 
     def __init__(self):
-        super().__init__('BarometerDataPublisher')
-        self.publisher_ = self.create_publisher(Barometer, 'barometer_data', 10)
-        read_period = 0.1  # seconds
-        self.timer = self.create_timer(read_period, self.barometer_read_and_publish)
+        super().__init__('barometer_data_publisher')
+        self.declare_parameter('barometer_topic_name', 'barometer_data')
+        self.declare_parameter('barometer_period', 1/10)
+        self.declare_parameter('fluid_density', 1029) # Default value for sea water (use 997 for fresh water)
+
+        barometer_topic_name = self.get_parameter('barometer_topic_name').get_parameter_value().string_value
+        barometer_period = self.get_parameter('barometer_period').get_parameter_value().double_value
+        fluid_density = self.get_parameter('fluid_density').get_parameter_value().integer_value
+
+        self.publisher_ = self.create_publisher(Barometer, barometer_topic_name, 10)
+        self.timer = self.create_timer(barometer_period, self.barometer_read_and_publish)
 
         self.sensor = ms5837.MS5837_30BA()
-        # self.sensor.setFluidDensity() # Configuring fluid density for fresh or saltwater. Defaulting to fresh water
+        self.sensor.setFluidDensity(fluid_density)
         if not self.sensor.init():
             self.get_logger().info('Sensor could not be initialized')
             exit(1)
         self.get_logger().info('Barometer initialized')
 
     def barometer_read_and_publish(self):
-        # Custom barometer message to publish. Can be found in the brov2_interfaces.
         msg = Barometer()
-
-        # Reading barometer and loading data into custom message
         if self.sensor.read():
                 msg.depth                   = self.sensor.depth()                               # Depth in meters using the fluid density (kg/m^3) configured by setFluidDensity()
                 msg.pressure_mbar           = self.sensor.pressure()                            # Default is mbar (no arguments)
@@ -36,11 +39,5 @@ class BarometerDataPublisher(Node):
                 print("Sensor read failed!")
                 exit(1)
 
-        # Publishing message and logging data sent over the topic /barometer_data
         self.publisher_.publish(msg)
         
-        # self.get_logger().info('Depth: %0.2f m\tP: %0.1f mbar  %0.3f psi\tT: %0.2f C  %0.2f F' % (msg.depth, 
-        #                                                                                          msg.pressure_mbar, 
-        #                                                                                          msg.pressure_psi, 
-        #                                                                                          msg.temperature_celsius, 
-        #                                                                                          msg.temperature_farenheit))

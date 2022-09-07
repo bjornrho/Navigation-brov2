@@ -1,12 +1,12 @@
-*insert_name_of_node*:
+/state_estimate_sub_pub:
   ros__parameters:
+    x_0: [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     std_a: 0.0
     std_gyro: 0.0
     std_dvl: 0.0
     std_depth: 0.0
     std_a_bias: 0.0
     std_gyro_bias: 0.0
-    dvl_offset: [2.0, 2.0, 2.0]
-    barometer_offset: [0.0, 0.0, 0.0]
-    imu_offset: [0.0, 0.0, 0.0]
-    store_NIS: False
+    dvl_offset: [-0.020, -0.095, 0.133]
+    barometer_offset: [-0.175, -0.015, -0.05]
+    imu_offset: [0.057, 0.027, -0.025]

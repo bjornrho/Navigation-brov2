@@ -1,18 +1,15 @@
 from argparse import ZERO_OR_MORE
 from telnetlib import PRAGMA_HEARTBEAT
-import csv
 import numpy as np
-from datetime import datetime
 from numpy.linalg import inv
 from numpy.linalg import norm
 
 
-
-# Implementation of the Quaternion based Extended Kalman Filter from Joan Solà's article: https://arxiv.org/abs/1711.02508
+# Implementation of the Quaternion based error-state Kalman Filter from Joan Solà's article: https://arxiv.org/abs/1711.02508
 # and the qekf implementation from FRoSt Lab available at https://bitbucket.org/frostlab/underwateriekf/src/main/
 class QEKF:
     def __init__(self, x_0, dx_0, P_0, std_a, std_gyro, std_dvl, std_depth, std_orientation, std_a_bias, std_gyro_bias, 
-                 dvl_offset, barometer_offset, imu_offset, store_NIS):
+                 dvl_offset, barometer_offset, imu_offset):
         """Initialization of the QEKF
 
         Args:
@@ -29,7 +26,6 @@ class QEKF:
             dvl_offset        (3 ndarray) : Offset value for DVL placement on ROV
             barometer_offset  (3 ndarray) : Offset value for barometer placement on ROV
             imu_offset        (3 ndarray) : Offset value for IMU placement on ROV
-            store_NIS                bool : Storing of NIS values for orientation, depth and velocity
             """
         
         # Resetting filter to initialization values
@@ -43,17 +39,9 @@ class QEKF:
 
         # NIS-related initialization
         self.IMU_NIS_counter = 0
-        self.store_NIS = store_NIS
-        file_directory = "src/brov2_qekf/NIS_values/"
-        file_name = datetime.now().strftime("%Y%m%d-%H%M%S" + ".csv")
-        if self.store_NIS:
-            self.NIS_file = open(file_directory + file_name, "a+")
-            self.NIS_writer = csv.writer(self.NIS_file)
-            self.NIS_writer.writerow([np.nan, np.nan, np.nan,
-                                      std_gyro, std_a, std_depth, std_gyro_bias, std_a_bias])
-
-
-
+        self.store_NIS = False
+        self.file_dir_name = ""
+        self.NIS_writer = None
 
     def filter_reset(self, x_0, dx_0, P_0, std_gyro, std_a, std_dvl, std_depth, 
                                              std_orientation, std_a_bias, std_gyro_bias):
@@ -84,8 +72,6 @@ class QEKF:
         self.std_orientation = std_orientation
         self.std_gyro_bias = std_gyro_bias
         self.std_a_bias = std_a_bias
-
-
 
     def integrate(self, u, dt):
         """Integrates measurement into nominal state
@@ -118,8 +104,6 @@ class QEKF:
 
         return self.x
 
-
-
     def predict(self, u, dt):
         """Runs prediction step of QEKF
 
@@ -145,9 +129,9 @@ class QEKF:
         a_m = u[0].reshape(-1,1)
         omega_m = u[1].reshape(-1,1)
 
-        a_offset = self.cross(omega_m)@self.cross(omega_m)@self.imu_offset
-        a = a_m - a_b - a_offset
         omega = omega_m - omega_b
+        a_offset = self.cross(omega)@self.cross(omega)@self.imu_offset
+        a = a_m - a_b - a_offset
 
         # Jacobian wrt. the error following equation (270)
         F_x = np.block([[I,     I*dt,   zero,                                           zero,   zero,   zero],
@@ -157,8 +141,6 @@ class QEKF:
                         [zero,  zero,   zero,                                           zero,   I,      zero],
                         [zero,  zero,   zero,                                           zero,   zero,   I]])
         
-        #dx_hat = F_x@self.dx #Should be skipped due to mean initialized to zero.
-
         #Propagate the uncertainty using equation (269)
         std_a = self.std_a
         std_g = self.std_gyro
@@ -174,7 +156,6 @@ class QEKF:
     
         P_hat = F_x@self.P@F_x.T + F_i@Q_i@F_i.T
 
-        #self.dx = dx_hat #Should be skipped due to mean initialized to zero.
         self.P = P_hat
         self.last_u = u
 
@@ -207,7 +188,6 @@ class QEKF:
         
         # Correcting state and covariance according to equations (275) and (276)
         self.dx = K@innovation
-        #P_hat = (np.eye(18)-K@H)@self.P
         self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + K@V@K.T
 
         if self.store_NIS and self.IMU_NIS_counter%10==0:
@@ -216,7 +196,6 @@ class QEKF:
         self.IMU_NIS_counter += 1 # IMU publishing at a whopping 100 Hz. Limiting the amount of NIS data stored.
 
         return self.dx, self.P
-
 
     def update_depth(self, depth_measurement_raw):
         """Runs correction step of QEKF
@@ -230,7 +209,7 @@ class QEKF:
 
         # Account for pressure sensor offset (is the sign correct??)
         R = self.quaternion_to_rotation_matrix(self, self.x[6:10])
-        depth_measurement_corrected = depth_measurement_raw + (R.T@self.barometer_offset)[2]
+        depth_measurement_corrected = depth_measurement_raw + (R@self.barometer_offset)[2]
 
 
         # Defining the Jacobian H and the depth covariance V
@@ -263,16 +242,13 @@ class QEKF:
         
         # Correcting state and covariance according to equations (275) and (276)
         self.dx = K*innovation
-        #P_hat = (np.eye(18)-K@H)@self.P
-        self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + V*K@K.T #matmul trouble due to scalar V using K@V@K.T
+        self.P = (np.eye(18) - K@H)@self.P@(np.eye(18) - K@H).T + V*K@K.T
 
         if self.store_NIS:
             NIS = (innovation*inv(H@self.P@H.T + V)*innovation)[0,0]
             self.NIS_writer.writerow([np.nan, NIS, np.nan])
 
         return self.dx, self.P
-
-
 
     def update_dvl(self, dvl_measurement_raw_body, dvl_covariance_body):
         """Runs correction step of QEKF
@@ -328,8 +304,6 @@ class QEKF:
 
         return self.dx, self.P
 
-
-
     def inject(self):
         """Runs injection step of QEKF following equation (282)
 
@@ -341,31 +315,19 @@ class QEKF:
             x       (k+1 ndarray)   : Updated nominal state
             """
 
-        #q_dtheta = Rotation.from_euler('xyz', self.dx[6:9].T[0]).as_quat()
-        ## Changing from [x,y,z,w] to [w,x,y,z] format
-        #q_dtheta[0], q_dtheta[-1] = q_dtheta[-1], q_dtheta[0]
         q_dtheta = self.rotation_vector_to_quaternion(self.dx[6:9], norm(self.dx[6:9]))
-
-        # Different performance of the two above..
         
-        #print("\ng: \n", self.x[16:])
         self.x[0:3] += self.dx[0:3]
         self.x[3:6] += self.dx[3:6]
-        self.x[6:10] = self.quaternion_product(self.x[6:10], q_dtheta) #np.array([q_dtheta]).T)
+        self.x[6:10] = self.quaternion_product(self.x[6:10], q_dtheta)
         self.x[10:13] += self.dx[9:12]
         self.x[13:16] += self.dx[12:15]
         self.x[16:] += self.dx[15:]
 
         return self.x
 
-
-
     def reset(self):
         """Runs reset step of QEKF
-
-        Args:
-            dt                  : Time step between what???
-
 
         Returns:
             dx_hat  (k ndarray) : Reset error-state

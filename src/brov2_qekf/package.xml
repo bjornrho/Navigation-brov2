@@ -3,9 +3,9 @@
 <package format="3">
   <name>brov2_qekf</name>
   <version>0.0.0</version>
-  <description>Quaternion based Extended Kalman Filter</description>
-  <maintainer email="bjornar.rh@gmail.com">bjornar</maintainer>
-  <license>TODO: License declaration</license>
+  <description>State estimation through Quaternion based Extended Kalman Filter.</description>
+  <maintainer email="bjornar-rh@hotmail.com">Bjoernar Hogstad</maintainer>
+  <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

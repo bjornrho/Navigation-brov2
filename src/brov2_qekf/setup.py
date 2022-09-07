@@ -13,10 +13,10 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='bjornar',
-    maintainer_email='bjornar.rh@gmail.com',
-    description='Quaterinion based Extended Kalman Filter',
-    license='TODO: License declaration',
+    maintainer='Bjoernar Hogstad',
+    maintainer_email='bjornar-rh@hotmail.com',
+    description='State estimation through Quaternion based Extended Kalman Filter.',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

@@ -3,9 +3,9 @@
 <package format="3">
   <name>brov2_sonar_processing</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="bjornar.rh@gmail.com">bjornar</maintainer>
-  <license>TODO: License declaration</license>
+  <description>Sonar processing pipeline performing echo intensity correction, blind zone removal, slant range correction, and geometric correction.</description>
+  <maintainer email="bjornar-rh@gmail.com">Bjoernar Hogstad</maintainer>
+  <license>MIT</license>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>
@@ -13,7 +13,9 @@
   <test_depend>python3-pytest</test_depend>
 
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
   <exec_depend>brov2_interfaces</exec_depend>
+  <exec_depend>bluerov_interfaces</exec_depend>
   <exec_depend>SmoothingSplines.jl</exec_depend>
 
   <export>

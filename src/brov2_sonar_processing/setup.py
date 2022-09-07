@@ -13,10 +13,10 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='bjornar',
-    maintainer_email='bjornar.rh@gmail.com',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    maintainer='Bjoernar Hogstad',
+    maintainer_email='bjornar-rh@hotmail.com',
+    description='Sonar processing pipeline performing echo intensity correction, blind zone removal, slant range correction, and geometric correction.',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [

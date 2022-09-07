@@ -7,8 +7,6 @@ def main(args=None):
     
     # Construct the publisher
     gps_data_publisher = node.GPSDataPublisher()
-
-    # Reading and publishing data at defined rate (0.1 seconds)
     rclpy.spin(gps_data_publisher)
 
     # Clean up when script is stopped

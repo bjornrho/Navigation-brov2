@@ -1,0 +1,5 @@
+/gps_data_publisher:
+  ros__parameters:
+    gps_topic_name: "gps_data"
+    gps_period: 1
+    serial_connection: "/dev/ttyUSB1"

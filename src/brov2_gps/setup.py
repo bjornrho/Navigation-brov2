@@ -14,8 +14,8 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Bjoernar Hogstad',
-    maintainer_email='',
-    description='Publishes GPS data from Adafruit The Ultimate GPS',
+    maintainer_email='bjornar-rh@hotmail.com',
+    description='Driver for Adafruit Ultimate GPS sensor.',
     license='MIT',
     tests_require=['pytest'],
     entry_points={

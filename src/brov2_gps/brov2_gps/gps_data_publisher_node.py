@@ -12,14 +12,22 @@ from sensor_msgs.msg import NavSatFix
 class GPSDataPublisher(Node):
     # Initializer 
     def __init__(self):
-        super().__init__('GPSDataPublisher')
-        self.publisher_ = self.create_publisher(NavSatFix, 'gps_data', 10)
-        read_period = 1  # seconds
-        self.timer = self.create_timer(read_period, self.gps_read_and_publish)
+        super().__init__('gps_data_publisher')
+        self.declare_parameter('gps_topic_name', 'gps_data')
+        self.declare_parameter('gps_period', 1)
+        self.declare_parameter('serial_connection', '/dev/ttyUSB1')
+
+        gps_topic_name = self.get_parameter('gps_topic_name').get_parameter_value().string_value
+        gps_period = self.get_parameter('gps_period').get_parameter_value().string_value
+        serial_connection = self.get_parameter('serial_connection').get_parameter_value().string_value
+
+
+        self.publisher_ = self.create_publisher(NavSatFix, gps_topic_name, 10)
+        self.timer = self.create_timer(gps_period, self.gps_read_and_publish)
 
         ### GPS related initialization
         # Create a serial connection and GPS module instance.
-        uart = serial.Serial("/dev/ttyUSB1", baudrate=9600, timeout=10)
+        uart = serial.Serial(serial_connection, baudrate=9600, timeout=10)
         self.gps = adafruit_gps.GPS(uart, debug=False)
         # Turn on the basic GGA and RMC info (what you typically want)
         self.gps.send_command(b"PMTK314,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0")
@@ -32,8 +40,6 @@ class GPSDataPublisher(Node):
 
 
     def gps_read_and_publish(self):
-
-        # Standard NavSatFix message from sensor_msgs
         msg = NavSatFix()
         msg.header.stamp = self.get_clock().now().to_msg()
 

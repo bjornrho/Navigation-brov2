@@ -10,7 +10,7 @@ void DVLPublisher::connectToDVL(){
     memset(&hints, '\0', sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
-    getaddrinfo("192.168.2.52", "16171", &hints, &res); // Move IP and PORT values to parameter server
+    getaddrinfo(IP_.c_str(), port_.c_str(), &hints, &res); // Move IP and PORT values to parameter server
 
     try{
         sock = socket(res->ai_family, res->ai_socktype, res->ai_protocol);

@@ -1,4 +1,3 @@
-from ctypes import util
 import math
 import numpy as np
 import csv
@@ -84,13 +83,6 @@ class StateEstimateSubPub(Node):
         self.srv_filter_reset = self.create_service(Trigger, 'brov2_qekf/reset_qekf', self.srv_reset_qekf)
         self.srv_NIS_logging = self.create_service(Trigger, 'brov2_qekf/start_stop_NIS_logging', self.start_stop_NIS_logging)
 
-        # Initializing running variance estimation variables
-        self.variance_initialized = False
-        self.previous_measurement = None
-        self.M = None
-        self.S = None
-        self.k = 1
-
 
     ### Services
     def srv_set_yaw_offset(self, request, response):
@@ -156,11 +148,6 @@ class StateEstimateSubPub(Node):
     def imu_sub(self, msg):
         # Getting stamp of previous imu message and storing the current message
         previous_stamp = self.current_imu.header.stamp
-
-        ## RELATED TO RUNNING COVARIANCE COMPUTATION
-        #self.previous_measurement = np.array([[self.current_imu.linear_acceleration.x],
-        #                                      [self.current_imu.linear_acceleration.y],
-        #                                      [self.current_imu.linear_acceleration.z]])
         
         self.current_imu = msg
         
@@ -168,7 +155,6 @@ class StateEstimateSubPub(Node):
         q_ned = utility_functions.ENU_to_NED_conversion(np.array([[msg.orientation.w],[msg.orientation.x],
                                                                   [msg.orientation.y],[msg.orientation.z]]))
         if self.initialized:
-            self.k += 1
             # Fetching dt
             t_2 = self.current_imu.header.stamp.sec + self.current_imu.header.stamp.nanosec*(10**(-9))
             t_1 = previous_stamp.sec + previous_stamp.nanosec*(10**(-9))
@@ -247,13 +233,6 @@ class StateEstimateSubPub(Node):
             self.current_barometer = msg
             depth_measurement = self.current_barometer.depth
 
-            #if not self.variance_initialized:
-            ## Defining variables for running variance computation
-            #    self.M = self.current_barometer.depth
-            #    self.S = 0
-            #    self.variance_initialized = True
-            #print(self.computing_running_variance(depth_measurement))
-
             # Updating QEKF with depth measurement
             self.dx, self.P = self.QEKF.update_depth(depth_measurement)
 
@@ -330,10 +309,3 @@ class StateEstimateSubPub(Node):
 
 
                 self.state_estimate_publisher.publish(self.current_state_estimate)
-
-    def computing_running_variance(self, measurement):
-        prev_M = self.M
-        self.M = self.M + (measurement - self.M) / self.k
-        self.S = self.S + (measurement - prev_M)*(measurement - self.M)
-        
-        return self.S/(self.k-1)

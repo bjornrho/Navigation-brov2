@@ -2,7 +2,7 @@ import numpy as np
 from csaps import csaps
 
 class cubic_spline_regression:
-    def __init__(self, nS=500, sp=10e-6):
+    def __init__(self, nS=500, sp=1e-6):
             self.nSamples = nS
             self.smoothing_parameter = sp
 

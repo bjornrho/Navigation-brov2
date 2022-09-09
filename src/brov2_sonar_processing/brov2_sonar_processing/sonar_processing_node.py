@@ -7,7 +7,6 @@ from brov2_interfaces.msg import Sonar
 from brov2_interfaces.msg import DVL
 from nav_msgs.msg import Odometry
 import math
-import csv
 import numpy as np
 import pandas as pd
 from scipy import interpolate
@@ -154,8 +153,11 @@ class SonarProcessingNode(Node):
         u_interval = np.linspace(min(u_temp),max(u_temp),int(max(u_temp)-min(u_temp)))
         v_interval = np.linspace(min(v),max(v),int(max(v)-min(v)))
         U,V = np.meshgrid(u_interval,v_interval)
-    
+
+        ### Attempt various methods [linear, nearest, spline] using griddata if desired ###
         linear_frame = interpolate.griddata((v,u_temp), intensity_values, (V.T,U.T), method='linear')
+
+        # Or Knn method as described in hogstad2022sidescansonar
         knn_intensity_mean, knn_intensity_variance, knn_filtered_image = knn(self.side_scan_data.res, u_temp, v, intensity_values)
         self.store_processed_frames(u, v, intensity_values, knn_intensity_mean, knn_filtered_image)
     
@@ -198,11 +200,14 @@ class SonarProcessingNode(Node):
         raw_file_name = 'src/brov2_sonar_processing/processed_frames/raw_' + str(self.processed_frame_counter) + '.csv'
         knn_file_name = 'src/brov2_sonar_processing/processed_frames/knn_' + str(self.processed_frame_counter) + '.csv'
         knn_filtered_file_name = 'src/brov2_sonar_processing/processed_frames/knn_filtered_' + str(self.processed_frame_counter) + '.csv'
+        
         raw_df = pd.DataFrame(list(zip(*[u, v, intensity_values]))).add_prefix("Col")
         knn_df = pd.DataFrame(knn_intensity_mean).add_prefix("Col")
         knn_filtered_df = pd.DataFrame(knn_filtered_image).add_prefix("Col")
+        
         raw_df.to_csv(raw_file_name, index=False)
         knn_df.to_csv(knn_file_name, index=False)
         knn_filtered_df.to_csv(knn_filtered_file_name, index=False)
+        
         print("Frame #" + str(self.processed_frame_counter) + " stored.")
         self.processed_frame_counter += 1

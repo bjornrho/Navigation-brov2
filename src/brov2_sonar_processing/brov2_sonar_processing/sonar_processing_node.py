@@ -34,11 +34,15 @@ class SonarProcessingNode(Node):
                                             ('processing_period', 0.0001),
                                             ('number_of_samples_sonar', 500),
                                             ('range_sonar', 30)])
-        sonar_data_topic_name, dvl_vel_topic_name = self.get_parameters(['sonar_data_topic_name', 'dvl_vel_topic_name'])
-        qekf_state_estimate_topic_name = self.get_parameter('qekf_state_estimate_topic_name')
-        processing_period, number_of_samples_sonar, range_sonar = self.get_parameters(['processing_period',
-                                                                                       'number_of_samples_sonar',
-                                                                                       'range_sonar'])
+                                            
+        (sonar_data_topic_name, dvl_vel_topic_name, qekf_state_estimate_topic_name, 
+        processing_period, number_of_samples_sonar, range_sonar) = self.get_parameters(['sonar_data_topic_name', 
+                                                                                        'dvl_vel_topic_name',
+                                                                                        'qekf_state_estimate_topic_name',
+                                                                                        'processing_period',
+                                                                                        'number_of_samples_sonar',
+                                                                                        'range_sonar'])
+
 
 
         self.sonar_subscription = self.create_subscription(Sonar, sonar_data_topic_name.value, self.sonar_sub, 10)

@@ -164,14 +164,11 @@ class SonarProcessingNode(Node):
         if buffer_size%100 == 0 and buffer_size != 0:
             _,_,_,_,_,_,_,_,_ = self.construct_frame()
             self.buffer_processed_coordinate_array = self.buffer_processed_coordinate_array[50:]
-            #self.plot_utils.img.set_data(frame)
 
         swath_structure = self.buffer_unprocessed_swaths[0]
-        #raw_swath = swath_structure.swath_right
-
 
         # Intensity normalization
-        swath_structure.swath_right,spline_right = self.spline.swath_normalization(swath_structure.swath_right)
+        swath_structure.swath_right,_ = self.spline.swath_normalization(swath_structure.swath_right)
         swath_structure.swath_left,_    = self.spline.swath_normalization(swath_structure.swath_left)
 
         # Blind zone removal
@@ -191,9 +188,9 @@ class SonarProcessingNode(Node):
 
     def store_processed_frames(self, u, v, intensity_values, knn_intensity_mean, knn_filtered_image):
         # Storing coordinates and intensity values in csv
-        raw_file_name = '~/Navigation-brov2/data/sonar/processed/raw_' + str(self.processed_frame_counter) + '.csv'
-        knn_file_name = '~/Navigation-brov2/data/sonar/processed/knn_' + str(self.processed_frame_counter) + '.csv'
-        knn_filtered_file_name = '~/Navigation-brov2/data/sonar/processed/knn_filtered_' + str(self.processed_frame_counter) + '.csv'
+        raw_file_name = 'src/brov2_sonar_processing/processed_frames/raw_' + str(self.processed_frame_counter) + '.csv'
+        knn_file_name = 'src/brov2_sonar_processing/processed_frames/knn_' + str(self.processed_frame_counter) + '.csv'
+        knn_filtered_file_name = 'src/brov2_sonar_processing/processed_frames/knn_filtered_' + str(self.processed_frame_counter) + '.csv'
         raw_df = pd.DataFrame(list(zip(*[u, v, intensity_values]))).add_prefix("Col")
         knn_df = pd.DataFrame(knn_intensity_mean).add_prefix("Col")
         knn_filtered_df = pd.DataFrame(knn_filtered_image).add_prefix("Col")

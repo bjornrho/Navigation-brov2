@@ -1,3 +1,7 @@
+import sys
+sys.path.append('utility_functions')
+import utility_functions
+
 from rclpy.node import Node
 from brov2_interfaces.msg import Sonar
 from brov2_interfaces.msg import DVL
@@ -6,7 +10,6 @@ import math
 import csv
 import numpy as np
 import pandas as pd
-
 from scipy import interpolate
 
 from brov2_sonar_processing import side_scan_data as ssd
@@ -112,7 +115,7 @@ class SonarProcessingNode(Node):
         # State related extraction
         [w,x,y,z] = [swath_structure.state.pose.pose.orientation.w, swath_structure.state.pose.pose.orientation.x, 
                      swath_structure.state.pose.pose.orientation.y, swath_structure.state.pose.pose.orientation.z]
-        theta, psi = self.pitch_yaw_from_quaternion(w, x, y, z)
+        theta, psi = utility_functions.pitch_yaw_from_quaternion(w, x, y, z)
         pos_x = swath_structure.state.pose.pose.position.x
         pos_y = swath_structure.state.pose.pose.position.y
         altitude = swath_structure.altitude
@@ -184,30 +187,7 @@ class SonarProcessingNode(Node):
         # Add element to processed and remove from unprocessed buffer
         self.buffer_processed_coordinate_array.append(processed_coordinate_array)
         self.buffer_unprocessed_swaths.pop(0)
-    
 
-
-
-
-
-
-    ### HELPER FUNCTIONS
-    def pitch_yaw_from_quaternion(self, w, x, y, z):
-        """
-        Convert a quaternion into pitch and yaw
-        pitch is rotation around y in radians (counterclockwise)
-        yaw is rotation around z in radians (counterclockwise)
-        """     
-        t2 = +2.0 * (w * y - z * x)
-        t2 = +1.0 if t2 > +1.0 else t2
-        t2 = -1.0 if t2 < -1.0 else t2
-        pitch = math.asin(t2)
-     
-        t3 = +2.0 * (w * z + x * y)
-        t4 = +1.0 - 2.0 * (y * y + z * z)
-        yaw = math.atan2(t3, t4)
-     
-        return pitch, yaw # in radians
 
     def store_processed_frames(self, u, v, intensity_values, knn_intensity_mean, knn_filtered_image):
         # Storing coordinates and intensity values in csv

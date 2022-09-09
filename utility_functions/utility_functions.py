@@ -10,7 +10,7 @@ def yaw_from_quaternion(quaternion):
 
 
     Returns:
-        yaw_z            (4,1 ndarray) : Normalized quaternion
+        yaw_z                          : Yaw element corresponding to quaternion
         """
 
     q_w,q_x,q_y,q_z = quaternion.T[0]
@@ -20,6 +20,52 @@ def yaw_from_quaternion(quaternion):
     yaw_z = math.atan2(t0, t1)
 
     return yaw_z
+
+def pitch_yaw_from_quaternion(w, x, y, z):
+        """Converts quaternion [w,x,y,z] into pitch (rotation around y in radians counterclockwise) and 
+        yaw (rotation around z in radians counterclockwise) in radians
+
+        Args:
+            w           : Scalar element
+            x           : Imaginary element
+            y           : Imaginary element
+            z           : Imaginary element
+
+        Returns:
+            pitch       : Pitch element corresponding to quaternion
+            yaw         : Yaw element corresponding to quaternion
+
+        """     
+        t2 = +2.0 * (w * y - z * x)
+        t2 = +1.0 if t2 > +1.0 else t2
+        t2 = -1.0 if t2 < -1.0 else t2
+        pitch = math.asin(t2)
+     
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw = math.atan2(t3, t4)
+     
+        return pitch, yaw # in radians
+
+
+def ENU_to_NED_conversion(quaternion):
+    """Converts given quaternion from ENU to NED.
+
+    Args:
+        quaternion       (4,1 ndarray) : Quaternion in ENU of form [w,x,y,z]
+
+
+    Returns:
+        qproduct         (4,1 ndarray) : Normalized quaternion in NED
+        """
+    p_w,p_x,p_y,p_z = [0.0, -np.sqrt(1/2), -np.sqrt(1/2), 0.0]
+    q_w,q_x,q_y,q_z = quaternion.T[0]
+    qproduct = np.array([[p_w*q_w - p_x*q_x - p_y*q_y - p_z*q_z],
+                         [p_w*q_x + p_x*q_w + p_y*q_z - p_z*q_y],
+                         [p_w*q_y - p_x*q_z + p_y*q_w + p_z*q_x],
+                         [p_w*q_z + p_x*q_y - p_y*q_x + p_z*q_w]])
+
+    return qproduct/norm(qproduct)
 
 def cross(x):
     """Moves a 3 vector into so(3)

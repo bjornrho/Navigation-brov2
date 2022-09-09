@@ -28,12 +28,26 @@ class SonarProcessingNode(Node):
 
     def __init__(self):
         super().__init__('sonar_data_processor')
-        self.sonar_subscription = self.create_subscription(Sonar, 'sonar_data', self.sonar_sub, 10)
-        self.dvl_subscription   = self.create_subscription(DVL, 'dvl/velocity_estimate', self.dvl_sub, 10)
-        self.state_subscription = self.create_subscription(Odometry, '/CSEI/observer/odom', self.state_sub, 10)
+        self.declare_parameters(namespace='',
+                                parameters=[('sonar_data_topic_name', 'sonar_data'),
+                                            ('dvl_vel_topic_name', 'dvl/velocity_estimate'),
+                                            ('qekf_state_estimate_topic_name', '/CSEI/observer/odom'),
+                                            ('processing_period', 0.0001),
+                                            ('number_of_samples_sonar', 500),
+                                            ('range_sonar', 30)])
+        sonar_data_topic_name, dvl_vel_topic_name = self.get_parameters(['sonar_data_topic_name', 'dvl_vel_topic_name'])
+        qekf_state_estimate_topic_name = self.get_parameter('qekf_state_estimate_topic_name')
+        processing_period, number_of_samples_sonar, range_sonar = self.get_parameters(['processing_period',
+                                                                                       'number_of_samples_sonar',
+                                                                                       'range_sonar'])
+
+
+        self.sonar_subscription = self.create_subscription(Sonar, sonar_data_topic_name.value, self.sonar_sub, 10)
+        self.dvl_subscription   = self.create_subscription(DVL, dvl_vel_topic_name.value, self.dvl_sub, 10)
+        self.state_subscription = self.create_subscription(Odometry, qekf_state_estimate_topic_name.value, self.state_sub, 10)
 
         # Sonar data processing - initialization
-        self.side_scan_data = ssd.side_scan_data()
+        self.side_scan_data = ssd.side_scan_data(number_of_samples_sonar.value, range_sonar.value)
         self.spline = csr.cubic_spline_regression()
         self.current_swath = ssd.swath_structure()
         self.current_altitude = 0
@@ -42,10 +56,8 @@ class SonarProcessingNode(Node):
         self.buffer_unprocessed_swaths = []
         self.buffer_processed_coordinate_array = []
 
-        self.pose_csv_file_opened = False
         self.processed_frame_counter = 1
-        data_period = 0.0001
-        self.timer = self.create_timer(data_period, self.run_full_pre_processing_pipeline)
+        self.timer = self.create_timer(processing_period.value, self.run_full_pre_processing_pipeline)
 
         self.get_logger().info("Sonar processing node initialized.")
 
@@ -74,11 +86,6 @@ class SonarProcessingNode(Node):
     def state_sub(self, state_msg):
         self.current_state = state_msg
         self.state_initialized = True
-
-
-
-
-
 
 
 

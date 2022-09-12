@@ -9,7 +9,7 @@ using namespace std::chrono_literals;
 void SonarPublisher::ConnectToSonar(){
     receivedSamples = Sonar.GetData(sonarData, BUFFERSIZE);		// Get data from the EthernetSonar
 	while (receivedSamples <= 0){
-        std::cout << "try again\n";
+        RCLCPP_INFO(this->get_logger(), "Could not connect. Try again.\n");
 		Sonar.StartRec(range);
     	usleep(50000);
     	receivedSamples = Sonar.GetData(sonarData, BUFFERSIZE);
@@ -50,11 +50,11 @@ void SonarPublisher::WriteAndPublishData(){
                 sonar_data_publisher_->publish(sonarMsg);
                 pingCount++;
                 RCLCPP_INFO(this->get_logger(), "Complete ping # '%i' received. Publising on topic.\n", pingCount);
-			}
+			    }
+	        }
 	    }
-	}
+    }
 }
-
 
 
 

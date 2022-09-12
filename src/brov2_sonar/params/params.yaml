@@ -1,0 +1,7 @@
+/sonar_publisher:
+  ros__parameters:
+    sonar_topic_name: "sonar_data"
+    sonar_range: 30.0
+    sonar_number_of_samples: 500
+    sonar_left_active: true
+    sonar_right_active: true

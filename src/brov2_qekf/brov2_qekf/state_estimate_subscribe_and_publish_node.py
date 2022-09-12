@@ -29,31 +29,32 @@ class StateEstimateSubPub(Node):
             namespace='',
             parameters=[
                 ('x_0',[0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-                ('std_a',               np.sqrt(4.862*10**-1)),                  #datasheet: (190 * 9.81 * 10**-6 * np.sqrt(100))
-                ('std_gyro',            np.sqrt(1.298*10**-4)),                  #datasheet: (0.3 * (np.pi/180) * np.sqrt(100))
-                ('std_dvl',             0.01),
-                ('std_depth',           np.sqrt(6.090*10**-6)),
-                ('std_orientation',     np.sqrt(8.404*10**-7)),                  #datasheet: (3*np.pi/180)
-                ('std_a_bias',          np.sqrt(4.578*10**-2)),                  #datasheet: 0.0014
-                ('std_gyro_bias',       np.sqrt(2.033*10**-4)),                  #datasheet: 0.0038
-                ('dvl_offset',          [-0.020, -0.095, 0.133]),
-                ('barometer_offset',    [-0.175, -0.015, -0.05]),
-                ('imu_offset',          [0.057, 0.027, -0.025]),
-
+                ('std_a',                       np.sqrt(4.862*10**-1)),             #datasheet: (190 * 9.81 * 10**-6 * np.sqrt(100))
+                ('std_gyro',                    np.sqrt(1.298*10**-4)),             #datasheet: (0.3 * (np.pi/180) * np.sqrt(100))
+                ('std_dvl',                     0.01),
+                ('std_depth',                   np.sqrt(6.090*10**-6)),
+                ('std_orientation',             np.sqrt(8.404*10**-7)),             #datasheet: (3*np.pi/180)
+                ('std_a_bias',                  np.sqrt(4.578*10**-2)),             #datasheet: 0.0014
+                ('std_gyro_bias',               np.sqrt(2.033*10**-4)),             #datasheet: 0.0038
+                ('dvl_offset',                  [-0.020, -0.095, 0.133]),
+                ('barometer_offset',            [-0.175, -0.015, -0.05]),
+                ('imu_offset',                  [0.057, 0.027, -0.025]),
+                ('dvl_vel_topic_name',          'dvl/velocity_estimate'),
+                ('imu_topic_name',              'bno055/imu'),
+                ('barometer_topic_name',        'barometer/barometer_data'),
+                ('state_estimate_topic_name',   '/CSEI/observer/odom')
             ]
         )
 
         (self.x_0,self.std_a,self.std_gyro,self.std_dvl,self.std_depth,self.std_orientation, self.std_a_bias,
-        self.std_gyro_bias,self.dvl_offset,self.barometer_offset,self.imu_offset) = self.get_parameters(['x_0','std_a',
-                                                                                                         'std_gyro',
-                                                                                                         'std_dvl',
-                                                                                                         'std_depth',
-                                                                                                         'std_orientation',
-                                                                                                         'std_a_bias',
-                                                                                                         'std_gyro_bias',
-                                                                                                         'dvl_offset',
-                                                                                                         'barometer_offset',
-                                                                                                         'imu_offset'])
+        self.std_gyro_bias,self.dvl_offset,self.barometer_offset,self.imu_offset,dvl_vel_topic_name,imu_topic_name,
+        barometer_topic_name,state_estimate_topic_name) = self.get_parameters([ 'x_0','std_a','std_gyro','std_dvl',
+                                                                                'std_depth','std_orientation',
+                                                                                'std_a_bias','std_gyro_bias',
+                                                                                'dvl_offset','barometer_offset',
+                                                                                'imu_offset','dvl_vel_topic_name',
+                                                                                'imu_topic_name','barometer_topic_name',
+                                                                                'state_estimate_topic_name'])
         
         # Initializing nominal state, error-state, covariances and the QEKF
         self.initialized = False
@@ -64,12 +65,12 @@ class StateEstimateSubPub(Node):
         self.q_offset = None
 
         # Initializing subscribers for sensors
-        self.dvl_subscription = self.create_subscription(DVL, 'dvl/velocity_estimate', self.dvl_vel_sub, 5)
-        self.imu_subscription = self.create_subscription(Imu, 'bno055/imu', self.imu_sub, 10)
-        self.barometer_subscription = self.create_subscription(Barometer, 'barometer/barometer_data', self.barometer_sub, 5)
+        self.dvl_subscription = self.create_subscription(DVL, dvl_vel_topic_name.value, self.dvl_vel_sub, 5)
+        self.imu_subscription = self.create_subscription(Imu, imu_topic_name.value, self.imu_sub, 10)
+        self.barometer_subscription = self.create_subscription(Barometer, barometer_topic_name.value, self.barometer_sub, 5)
 
         # Initialization of state estimate publisher
-        self.state_estimate_publisher = self.create_publisher(Odometry, '/CSEI/observer/odom', 10)
+        self.state_estimate_publisher = self.create_publisher(Odometry, state_estimate_topic_name.value, 10)
         
         # Initializing current and previous message variables
         self.current_imu = Imu()

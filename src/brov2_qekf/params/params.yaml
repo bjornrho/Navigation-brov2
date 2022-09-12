@@ -10,3 +10,7 @@
     dvl_offset: [-0.020, -0.095, 0.133]
     barometer_offset: [-0.175, -0.015, -0.05]
     imu_offset: [0.057, 0.027, -0.025]
+    dvl_vel_topic_name: "dvl/velocity_estimate"
+    imu_topic_name: "bno055/imu"
+    barometer_topic_name: "barometer/barometer_data"
+    state_estimate_topic_name: "/CSEI/observer/odom"

@@ -2,9 +2,9 @@
 Sensor drivers, state estimation, trajectory generation/publishing, Text User Interface, and acoustic image processing pipeline for navigational purposes utilizing [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
 
 Consult separate README's for the usage of respective packages:
-* [**brov2_dvl**](src/brov2_dvl/README.md): Driver for A50 DVL
-* [**brov2_barometer**](src/brov2_barometer/README.md): Driver for Bar30 Pressure Sensor
-* [**brov2_gps**](src/brov2_gps/README.md): Driver for Ultimate GPS
+* [**brov2_dvl**](src/brov2_dvl/): Driver for A50 DVL
+* [**brov2_barometer**](src/brov2_barometer/): Driver for Bar30 Pressure Sensor
+* [**brov2_gps**](src/brov2_gps/): Driver for Ultimate GPS
 
 ## Library/Module Dependencies
 The various packages rely on the following list of libraries and modules:

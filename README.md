@@ -7,13 +7,16 @@ Consult separate README's for the usage of respective packages:
 * [**brov2_gps**](src/brov2_gps/): Driver for Ultimate GPS
 
 ## Library/Module Dependencies
-The various packages rely on the following list of libraries and modules:
+The packages/scripts rely on the following list of libraries and modules:
+**Onboard**:
 * [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
 * [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
 * [System Management Bus (SMBus)](http://smbus.org/)
 * [Adafruit_CircuitPython_GPS module](https://github.com/adafruit/Adafruit_CircuitPython_GPS)
-* [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
 * [BNO055 IMU sensor ROS2 library](https://github.com/flynneva/bno055)
+**Local**:
+* [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
+**Both**:
 * [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c)
 
 ## GStreamer Camera Stream

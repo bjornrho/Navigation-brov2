@@ -1,13 +1,24 @@
 # Navigation for BlueROV2
+Sensor drivers, state estimation, trajectory generation/publishing, Text User Interface, and acoustic image processing pipeline for navigational purposes utilizing [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
 
-Sensor-drivers and odometry for navigation purposes using [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
+Consult separate README's for the usage of respective packages:
+* [**brov2_dvl**](src/brov2_dvl/README.md): Driver for A50 DVL
+* [**brov2_barometer**](src/brov2_barometer/README.md): Driver for Bar30 Pressure Sensor
+* [**brov2_gps**](src/brov2_gps/README.md): Driver for Ultimate GPS
 
-## GStreamer
+## Library/Module Dependencies
+The various packages rely on the following list of libraries and modules:
+* [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
+* [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
+* [System Management Bus (SMBus)](http://smbus.org/)
+* [Adafruit_CircuitPython_GPS module](https://github.com/adafruit/Adafruit_CircuitPython_GPS)
+* [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
+* [BNO055 IMU sensor ROS2 library](https://github.com/flynneva/bno055)
 
-Run shell scripts on PC and PI to set up 30fps live stream from camera to PC.
+## GStreamer Camera Stream
+In order to set up 30fps live stream from camera to PC; run the shell scripts `start_video_pc.sh` and `start_video_pi.sh` on PC and PI respectively.
 
 ## Sensor suite
-
 Sensors used in this project:
 
 * DVL: Waterlinked A50
@@ -15,19 +26,8 @@ Sensors used in this project:
 * Barometer: Blue Robotics BAR30
 * Side-scan sonar: Deepvision OSMEthernet Sonar System, 680 kHz transducers
 
-## Barometer
-
-Heavily based on the MS5837 library mentioned under [Libraries](#libraries).
-Remember to enable I2C on the Raspberry Pi and connect on the correct pins!
-
-
-## Libraries
-
-* [BlueRobotics MS5837 Python Library](https://github.com/bluerobotics/ms5837-python)
-* [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json)
-* [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
-* [BNO055 IMU sensor ROS2 library](https://github.com/flynneva/bno055)
-
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
+[Apache 2.0](https://choosealicense.com/licenses/apache-2.0/)
+

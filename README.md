@@ -14,6 +14,7 @@ The various packages rely on the following list of libraries and modules:
 * [Adafruit_CircuitPython_GPS module](https://github.com/adafruit/Adafruit_CircuitPython_GPS)
 * [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
 * [BNO055 IMU sensor ROS2 library](https://github.com/flynneva/bno055)
+* [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c)
 
 ## GStreamer Camera Stream
 In order to set up 30fps live stream from camera to PC; run the shell scripts `start_video_pc.sh` and `start_video_pi.sh` on PC and PI respectively.

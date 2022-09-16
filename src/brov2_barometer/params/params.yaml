@@ -1,0 +1,5 @@
+/barometer_data_publisher:
+  ros__parameters:
+    barometer_topic_name: "barometer_data"
+    barometer_period: 0.1
+    fluid_density: 1029

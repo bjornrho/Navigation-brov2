@@ -7,7 +7,7 @@ Consult separate README's for the usage of respective packages:
 * [**brov2_gps**](src/brov2_gps/): Driver for Ultimate GPS
 
 ## Library/Module Dependencies
-The packages/scripts rely on the following list of libraries and modules.
+The packages/scripts rely on the following list of libraries and modules to function properly. 
 
 **Onboard**:
 

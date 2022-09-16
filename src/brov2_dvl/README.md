@@ -2,7 +2,7 @@
 Sensor-driver for the [A50 DVL](https://waterlinked.github.io/dvl/dvl-a50/) from Water Linked using ethernet. Functional with the **2.1.0** and **2.2.1** software releases. 
 
 ## Getting started
-The driver is dependent on the JSON library [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json), which must be installed prior ut using the driver. In addition, the driver is dependent on custom interfaces found in the package **brov2_interfaces**. 
+The driver is dependent on the JSON library [Nlohman Json - JSON for Modern C++ ](https://github.com/nlohmann/json), which must be installed prior to using the driver. In addition, the driver is dependent on custom interfaces found in the package **brov2_interfaces**. 
 
 *Make sure the ethernet connection to the DVL is active.* This can be done pinging the DVL from a terminal:
 ```

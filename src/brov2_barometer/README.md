@@ -1,7 +1,7 @@
 # Driver for Bar30 Pressure Sensor
 Sensor-driver for the [Bar30 Pressure Sensor](https://bluerobotics.com/store/sensors-sonars-cameras/sensors/bar30-sensor-r1/) from Blue Robotics using SMBus.
 
-## Getting started
+## Getting Started
 The driver utilizes the [ms5837 python module](https://github.com/bluerobotics/ms5837-python) and is dependent on the System Management Bus [SMBus](http://smbus.org/), which may be installed through:
 ```
 sudo apt-get install python-smbus

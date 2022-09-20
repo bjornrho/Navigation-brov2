@@ -1,7 +1,7 @@
 # Driver for OSM Ethernet Sonar System
 Sensor-driver for the [OSM Ethernet Sonar System](https://deepvision.se/products/oem-sonar-modules/) from Deep Vision.
 
-## Getting started
+## Getting Started
 The driver utilizes an API from Deep Vision which is not publicly available in this repository due to copyrights. In addition, the driver is dependent on custom interfaces found in the package **brov2_interfaces**.
 
 Build and source the **brov2_sonar** package and all it's dependencies:

@@ -1,7 +1,7 @@
 # Driver for Ultimate GPS
 Sensor-driver for the [Ultimate GPS Breakout](https://learn.adafruit.com/adafruit-ultimate-gps) from Adafruit using UART serial connection.
 
-## Getting started
+## Getting Started
 The driver utilizes the [Adafruit_CircuitPython_GPS module](https://github.com/adafruit/Adafruit_CircuitPython_GPS), which may be installed through:
 ```
 pip3 install adafruit-circuitpython-gps

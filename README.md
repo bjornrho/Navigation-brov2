@@ -6,6 +6,7 @@ Consult separate README's for the usage of respective packages:
 * [**brov2_sonar**](src/brov2_sonar/): Driver for OSM Ethernet Sonar System
 * [**brov2_barometer**](src/brov2_barometer/): Driver for Bar30 Pressure Sensor
 * [**brov2_gps**](src/brov2_gps/): Driver for Ultimate GPS
+* [**brov2_trajectory**](src/brov2_trajectory/): Trajectory Generation and Publishing 
 
 ## Library/Module Dependencies
 The packages/scripts rely on the following list of libraries and modules to function properly. 
@@ -25,6 +26,10 @@ The packages/scripts rely on the following list of libraries and modules to func
 **Both**:
 
 * [GStreamer](https://gstreamer.freedesktop.org/documentation/installing/on-linux.html?gi-language=c)
+* [NumPy](https://numpy.org/)
+* [SciPy](https://scipy.org/)
+* [Pandas](https://pandas.pydata.org/)
+* [progressbar2](https://progressbar-2.readthedocs.io/en/latest/)
 
 ## GStreamer Camera Stream
 In order to set up 30fps live stream from camera to PC; run the shell scripts `start_video_pc.sh` and `start_video_pi.sh` on PC and PI respectively.

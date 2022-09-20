@@ -39,3 +39,24 @@ A trajectory consists of and is published as a consecutive row of separate set-p
 | quat          | The reference orientation in quaternions [w,x,y,z]                                            |
 | velocity      | The reference velocity (linear and angular)                                                   |
 | acceleration  | The reference acceleration (linear and angular)                                               |  
+
+
+## Trajectory Generation - Getting Started
+The trajectory generating scripts are written using the [Sensor Fusion and Tracking Toolbox](https://se.mathworks.com/help/fusion/index.html?s_tid=CRUX_lftnav) in MATLAB. The main scripts are
+* `trajectory_constraint_generator.m`: Script generating constraints for a specified trajectory
+* `trajectory_generator.m`: Script creating and storing trajectory based on the stored constraints
+
+and they are accompanied by several scripts containing support functions in order to generating trajectories easier. Two types of lawnmower trajectories are supported, namely *out-n-back* and *side-to-side*.  
+
+*INSERT EXAMPLE IMAGES OF THE TWO TRAJECTORIES*
+
+To generate a trajectory the following steps must be executed:
+1. Set the constraint parameters
+2. *Generate* constraints
+2. Set the trajectory parameters
+4. *Create* and *store* the trajectory
+
+## Trajectory Generation - Step 1: Set the Constraint Parameters
+## Trajectory Generation - Step 2: Generate Constraints
+## Trajectory Generation - Step 3: Set the Trajectory Parameters
+## Trajectory Generation - Step 4: Create and Store the Trajectory

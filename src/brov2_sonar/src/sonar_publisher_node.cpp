@@ -42,8 +42,7 @@ void SonarPublisher::WriteAndPublishData(){
 
                 // Building sonar interface and publishing
                 sonarMsg.header.stamp = now();
-                // 500 is the defined sample size (must be changed in custom message)
-                for (int j = 0; j < 500; j++) {
+                for (int j = 0; j < nSamples; j++) {
                         sonarMsg.data_zero[j] = data0[j];
                         sonarMsg.data_one[j]  = data1[j];
 

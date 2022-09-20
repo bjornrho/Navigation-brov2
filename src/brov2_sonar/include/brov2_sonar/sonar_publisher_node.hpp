@@ -25,7 +25,7 @@ class SonarPublisher : public rclcpp::Node
 public:
   SonarPublisher()
   : Node("sonar_publisher"),
-  Sonar{"192.168.2.62", 0xE001}
+  Sonar{"192.168.2.62", 0xE001} // CHANGE HARDCODED IP IF NECESSARY
   { this->declare_parameter<std::string>("sonar_topic_name", "sonar_data");
     this->declare_parameter<float>("sonar_range", 30);
     this->declare_parameter<int>("sonar_number_of_samples", 500);
@@ -76,7 +76,7 @@ private:
 
   const static int BUFFERSIZE = 2048;
   float range;									            // Sonar range in meters
-  int nSamples;									            // Number of samples per active side and ping
+  int nSamples;									            // Number of samples per active side and ping. Must coincide with sonar interface message.
 
   int nPeriods = 32;									    // Number of periods of transmitted pulse
   float startFreq = 645000;//320000;					    // Starting frequency of transmitted pulse

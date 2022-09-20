@@ -27,15 +27,15 @@ class TrajectoryPublisher(Node):
                                 parameters=[('trajectory_topic_name', '/CSE/references'),
                                             ('trajectory_file_name', 'MC_circle.csv'),
                                             ('trajectory_period', 1/100),
-                                            ('yaw_update_printout', True)])
+                                            ('update_printout', True)])
 
-        trajectory_topic_name, trajectory_file_name, trajectory_period = self.get_parameters(['trajectory_topic_name',
+        trajectory_topic_name, trajectory_file_name, self.trajectory_period = self.get_parameters(['trajectory_topic_name',
                                                                                               'trajectory_file_name',
                                                                                               'trajectory_period'])
-        self.yaw_print = self.get_parameter('yaw_update_printout').get_parameter_value().bool_value
+        self.update_printout = self.get_parameter('update_printout').get_parameter_value().bool_value
 
         self.publisher_ = self.create_publisher(Reference, trajectory_topic_name.value, 10)
-        self.trajectory_timer = self.create_timer(trajectory_period.value, self.reference_publisher)
+        self.trajectory_timer = self.create_timer(self.trajectory_period.value, self.reference_publisher)
         self.trajectory_iterator = 0
 
         # Getting trajectories from csv-file
@@ -96,9 +96,10 @@ class TrajectoryPublisher(Node):
         if self.trajectory_iterator < len(self.rows)-1:
             self.trajectory_iterator += 1
             if self.trajectory_iterator % 10 == 0:
-                if self.yaw_print:
-                    yaw = utility_functions.yaw_from_quaternion(np.array([[orientation.w],[orientation.x],[orientation.y],[orientation.z]]))
-                    print("Yaw: ", yaw*180/np.pi)   
+                if self.update_printout and self.trajectory_iterator > (1/self.trajectory_period.value)*3:
+                    yaw = utility_functions.yaw_from_quaternion(np.array([[orientation.w],[orientation.x],
+                                                                          [orientation.y],[orientation.z]]))
+                    print("Current position and yaw: [%f,%f,%f] & %f" %(position.x, position.y, position.z, yaw*180/np.pi))
                 self.pbar.update(self.trajectory_iterator)
         else:
             self.pbar.finish()

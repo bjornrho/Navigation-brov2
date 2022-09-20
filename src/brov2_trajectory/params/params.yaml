@@ -3,4 +3,4 @@
     trajectory_topic_name: "/CSE/references"
     trajectory_file_name: "MC_short_trajectory.csv"
     trajectory_period: 0.01
-    yaw_update_printout: False
+    update_printout: False

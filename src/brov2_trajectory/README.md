@@ -20,7 +20,7 @@ Run the `trajectory_publisher` node with default parameters:
 ros2 run brov2_trajectory brov2_trajectory_exe
 ```
 
-## Node Parameters
+## Trajectory Publisher - Node Parameters
 Configuring the settings can be done through making changes to the [node parameter file](params/params.yaml) and passing this as an argument when running the `trajectory_publisher` node:
 ```
 ros2 run brov2_trajectory brov2_trajectory_exe --ros-args --params-file src/brov2_trajectory/params/params.yaml
@@ -31,7 +31,7 @@ ros2 run brov2_trajectory brov2_trajectory_exe --ros-args --params-file src/brov
 * **update_printout**: Bool allowing printout of current position and yaw set-point; default=True
 
 
-## Trajectory Interface Description
+## Trajectory Publisher - Interface Description
 A trajectory consists of and is published as a consecutive row of separate set-points. Each set-point is described using the custom *Reference.msg* interface from **bluerov_interface** consisting of the following variables:
 | Variable      | Description |
 | -----------   | ----------- |

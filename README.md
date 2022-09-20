@@ -3,6 +3,7 @@ Sensor drivers, state estimation, trajectory generation/publishing, Text User In
 
 Consult separate README's for the usage of respective packages:
 * [**brov2_dvl**](src/brov2_dvl/): Driver for A50 DVL
+* [**brov2_sonar**](src/brov2_sonar/): Driver for OSM Ethernet Sonar System
 * [**brov2_barometer**](src/brov2_barometer/): Driver for Bar30 Pressure Sensor
 * [**brov2_gps**](src/brov2_gps/): Driver for Ultimate GPS
 

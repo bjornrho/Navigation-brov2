@@ -1,4 +1,4 @@
-# Driver for OSM Ethernet Sonar System.
+# Driver for OSM Ethernet Sonar System
 Sensor-driver for the [OSM Ethernet Sonar System](https://deepvision.se/products/oem-sonar-modules/) from Deep Vision.
 
 ## Getting started

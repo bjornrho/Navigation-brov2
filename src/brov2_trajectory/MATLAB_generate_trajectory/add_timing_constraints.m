@@ -26,7 +26,7 @@ function trajectory_constraints = add_timing_constraints(start_time,            
     %%
 
     
-    toa_straight = @(cp,pp) (sqrt( (cp(1)-pp(1))^2 + (cp(2)-pp(2))^2 + (cp(3)-pp(3))^2 ) / surge_velocity);
+    toa_straight = @(cp,pp) max((sqrt( (cp(1)-pp(1))^2 + (cp(2)-pp(2))^2 + (cp(3)-pp(3))^2 ) / surge_velocity), 0.0001);
     toa_turn = (pi*turn_radius) / (surge_velocity*turn_velocity_percentage/100); 
     
     if path_type == "out-n-back"
@@ -45,11 +45,12 @@ function trajectory_constraints = add_timing_constraints(start_time,            
                 [previous_time + toa_turn, path_constraints(i,:)]];
             end
         end
+        previous_time = trajectory_constraints(i,1);
         end_point_index = size(path_constraints,1);
         previous_point = path_constraints(end_point_index-1,1:3);
         end_point = path_constraints(end_point_index,1:3);
         trajectory_constraints = [trajectory_constraints; ...
-                    [previous_time + 2*toa_straight(end_point, previous_point), path_constraints(end_point_index,:)]];
+                    [previous_time + 2*toa_straight(end_point, previous_point), path_constraints(end_point_index,:)]]
                 
     elseif path_type == "side-to-side"
         

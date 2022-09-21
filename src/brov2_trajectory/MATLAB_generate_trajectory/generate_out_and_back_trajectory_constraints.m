@@ -1,5 +1,4 @@
 function path_constraints  = generate_out_and_back_trajectory_constraints(start_point,           ...
-                                                                          start_angle,           ...
                                                                           end_point,                ...
                                                                           surge_velocity,           ...
                                                                           turn_velocity_percentage, ...
@@ -11,10 +10,8 @@ function path_constraints  = generate_out_and_back_trajectory_constraints(start_
 
     % Input-
     % starting_point            : Starting point of the trajectory
-    % starting_angle            : Angle determining trajectory orientation
-    %                             (grades)
     % end_point                 : End point of the trajectory
-    % surge_velocity            : Surge velocity through 
+    % surge_velocity            : Surge velocity through straight sections
     % turn_velocity_percentage  : Percentage of surge velocity to keep
     %                             through turns
     % number_of_lines           : Number of lines in the trajectory

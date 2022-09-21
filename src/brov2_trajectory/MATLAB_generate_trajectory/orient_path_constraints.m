@@ -27,7 +27,7 @@ function oriented_path_constraints = orient_path_constraints(start_angle,       
     
     if path_type == "out-n-back"
          for i=1:(size(path_constraints,1))
-            if i == 1
+            if i == 1 || i == size(path_constraints,1)
                 % Changes to start point
                 oriented_path_constraints(i,start_wp_index)     = path_constraints(i,start_wp_index);
                 oriented_path_constraints(i,vel_index)          = [cosd(start_angle)*path_constraints(i,4),...
@@ -45,7 +45,7 @@ function oriented_path_constraints = orient_path_constraints(start_angle,       
 
     elseif path_type == "side-to-side"
         for i=1:(size(path_constraints,1))
-            if i == 1
+            if i == 1 || i == size(path_constraints,1)
                 % Changes to start points
                 oriented_path_constraints(i,start_wp_index)     = path_constraints(i,start_wp_index);
                 oriented_path_constraints(i,vel_index)          = [cosd(start_angle)*path_constraints(i,4),...

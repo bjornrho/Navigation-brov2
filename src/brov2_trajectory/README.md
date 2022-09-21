@@ -1,5 +1,46 @@
-# Trajectory Generation and Publishing 
+# Trajectory Generator and Trajectory Publisher 
 MATLAB scripts to help generate lawnmower trajectories and ROS2 package to publish the trajectories.
+
+## Trajectory Generator - Getting Started
+The trajectory generating script `trajectory_main_script.m` and the accompanying support functions are written using the [Sensor Fusion and Tracking Toolbox](https://se.mathworks.com/help/fusion/index.html?s_tid=CRUX_lftnav) in MATLAB. This toolbox must be installed. 
+
+Two types of lawnmower trajectories are supported, namely *out-n-back* and *side-to-side*.  
+
+*INSERT EXAMPLE IMAGES OF THE TWO TRAJECTORIES*
+
+A trajectory is generated to adhere to multiple constraints on [timeOfArrival, Positions, Velocities, Orientation], and the toolbox will provide what it deems as the most efficient trajectory. To generate a trajectory the following steps must be executed:
+1. Set the constraint variables and *generate* spatial constraints
+2. Manually add desired depth values for all set-point constraints and *generate* time constraints 
+3. Set trajectory variables and *create/store* the trajectory
+
+## Trajectory Generator - Step 1: Set Constraint Variables and Generate Spatial Constraints
+The first step is to set the variables in `trajectory_main_script.m` which help define constraints for a specific trajectory:
+
+| Variable      | Description |
+| -----------   | ----------- |
+| surge_velocity            | The velocity when executing the trajectory in (meters/seconds)                |
+| turn_radius               | The radius of each separate turn in (meters)                                  |
+| line_distance             | The distance in the xy-plane to cover in each straight section in (meters)    |  
+| number_of_lines           | The number of straight sections in the lawnmower path                         |
+| turn_velocity_percentage  | Percentage of surge_velocity defining the velocity                            |
+| start_point               | The starting point of the trajectory [x,y,z]                                  |
+| start_angle               | Angle (degrees) with which to reorient path constraints                       |
+| start_time                | Amount of time the vehicle can use to get to the starting point               |
+| end_point                 | The ending point of the trajectory [x,y,z]                                    |
+| path_type                 | The type of trajectory to generate; *out-n-back* or *side-to-side*            |
+| turn_direction            | The direction of the first turn of the trajectory; *right* or *left*          |
+
+Proceed to run *Section 1* using the **run section** option, and make sure the variables are defined in the workspace alongside with the *oriented_path_constraints* object.
+
+## Trajectory Generator - Step 2: Manually Add Depth Values and Generate Time Constraints
+Note how the *oriented_path_constraints* object contrains the trajectory to a depth of **0** (all values along the 3rd column are 0) for all set-points. It is necessary to manually edit all depth values along the 3rd column in the *oriented_path_constraints* object prior to running *Section 2* in `trajectory_main_script.m`.
+
+Run *Section 2* using the **run section** option; this will create a *trajectory_constraints* object containing all necessary constraints [timeOfArrival, Positions, Velocities, Orientation].
+
+*Make sure no successive time stamps are equal to avoid error during trajectory generation.*
+
+## Trajectory Generator - Step 3: Set Trajectory Variables and Create/Store the Trajectory
+
 
 ## Trajectory Publisher - Getting Started
 The driver utilizes [NumPy](https://numpy.org/) and [progressbar2](https://progressbar-2.readthedocs.io/en/latest/), which both may be installed using [pip](https://pypi.org/project/pip/):
@@ -40,43 +81,3 @@ A trajectory consists of and is published as a consecutive row of separate set-p
 | velocity      | The reference velocity (linear and angular)                                                   |
 | acceleration  | The reference acceleration (linear and angular)                                               |  
 
-
-## Trajectory Generation - Getting Started
-The trajectory generating script `trajectory_main_script.m` and the accompanying support functions are written using the [Sensor Fusion and Tracking Toolbox](https://se.mathworks.com/help/fusion/index.html?s_tid=CRUX_lftnav) in MATLAB. This toolbox must be installed. 
-
-Two types of lawnmower trajectories are supported, namely *out-n-back* and *side-to-side*.  
-
-*INSERT EXAMPLE IMAGES OF THE TWO TRAJECTORIES*
-
-A trajectory is generated to adhere to multiple constraints on [timeOfArrival, Positions, Velocities, Orientation], and the toolbox will provide what it deems as the most efficient trajectory. To generate a trajectory the following steps must be executed:
-1. Set the constraint variables and *generate* spatial constraints
-2. Manually add desired depth values for all set-point constraints and *generate* time constraints 
-3. Set trajectory variables and *create/store* the trajectory
-
-## Trajectory Generation - Step 1: Set Constraint Variables and Generate Spatial Constraints
-The first step is to set the variables in `trajectory_main_script.m` which help define constraints for a specific trajectory:
-
-| Variable      | Description |
-| -----------   | ----------- |
-| surge_velocity            | The velocity when executing the trajectory in (meters/seconds)                |
-| turn_radius               | The radius of each separate turn in (meters)                                  |
-| line_distance             | The distance in the xy-plane to cover in each straight section in (meters)    |  
-| number_of_lines           | The number of straight sections in the lawnmower path                         |
-| turn_velocity_percentage  | Percentage of surge_velocity defining the velocity                            |
-| start_point               | The starting point of the trajectory [x,y,z]                                  |
-| start_angle               | Angle (degrees) with which to reorient path constraints                       |
-| start_time                | Amount of time the vehicle can use to get to the starting point               |
-| end_point                 | The ending point of the trajectory [x,y,z]                                    |
-| path_type                 | The type of trajectory to generate; *out-n-back* or *side-to-side*            |
-| turn_direction            | The direction of the first turn of the trajectory; *right* or *left*          |
-
-Proceed to run *Section 1* using the **run section** option, and make sure the variables are defined in the workspace alongside with the *oriented_path_constraints* object.
-
-## Trajectory Generation - Step 2: Manually Add Depth Values and Generate Time Constraints
-Note how the *oriented_path_constraints* object contrains the trajectory to a depth of **0** (all values along the 3rd column are 0) for all set-points. It is necessary to manually edit all depth values along the 3rd column in the *oriented_path_constraints* object prior to running *Section 2* in `trajectory_main_script.m`.
-
-Run *Section 2* using the **run section** option; this will create a *trajectory_constraints* object containing all necessary constraints [timeOfArrival, Positions, Velocities, Orientation].
-
-*Make sure no successive time stamps are equal to avoid error during trajectory generation.*
-
-## Trajectory Generation - Step 3: Set Trajectory Variables and Create/Store the Trajectory

@@ -22,6 +22,7 @@ The packages/scripts rely on the following list of libraries and modules to func
 **Locally**:
 
 * [Ncurses](https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/)
+* [Sensor Fusion and Tracking Toolbox](https://se.mathworks.com/help/fusion/index.html?s_tid=CRUX_lftnav)
 
 **Both**:
 

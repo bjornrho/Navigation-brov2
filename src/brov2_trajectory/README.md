@@ -50,13 +50,33 @@ and they are accompanied by several scripts containing support functions in orde
 
 *INSERT EXAMPLE IMAGES OF THE TWO TRAJECTORIES*
 
-To generate a trajectory the following steps must be executed:
-1. Set the constraint parameters
+A trajectory is generated to adhere to multiple constraints on [timeOfArrival, Velocities, Orientation], and the toolbox will provide what it deems as the most efficient trajectory. To generate a trajectory the following steps must be executed:
+1. Set the constraint variables
 2. *Generate* constraints
-2. Set the trajectory parameters
+2. Set the trajectory variables
 4. *Create* and *store* the trajectory
 
-## Trajectory Generation - Step 1: Set the Constraint Parameters
+## Trajectory Generation - Step 1: Set the Constraint Variables
+The first step is to set the variables which help define constraints for a specific trajectory:
+
+| Variable      | Description |
+| -----------   | ----------- |
+| surge_velocity            | The velocity when executing the trajectory in (meters/seconds)                |
+| turn_radius               | The radius of each separate turn in (meters)                                  |
+| line_distance             | The distance in the xy-plane to cover in each straight section in (meters)    |  
+| number_of_lines           | The number of straight sections in the lawnmower path                         |
+| turn_velocity_percentage  | Percentage of surge_velocity defining the velocity                            |
+| start_point               | The starting point of the trajectory [x,y,z]                                  |
+| start_angle               | Angle (degrees) with which to reorient path constraints                       |
+| start_time                | Amount of time the vehicle can use to get to the starting point               |
+| end_point                 | The ending point of the trajectory [x,y,z]                                    |
+| path_type                 | The type of trajectory to generate; *out-n-back* or *side-to-side*            |
+| turn_direction            | The direction of the first turn of the trajectory; *right* or *left*          |
+
+Proceed to run *Section 1* using the **run section** option, and make sure the variables are defined in the workspace.
+
 ## Trajectory Generation - Step 2: Generate Constraints
-## Trajectory Generation - Step 3: Set the Trajectory Parameters
+
+
+## Trajectory Generation - Step 3: Set the Trajectory Variables
 ## Trajectory Generation - Step 4: Create and Store the Trajectory

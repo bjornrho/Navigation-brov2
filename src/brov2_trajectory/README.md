@@ -50,7 +50,7 @@ and they are accompanied by several scripts containing support functions in orde
 
 *INSERT EXAMPLE IMAGES OF THE TWO TRAJECTORIES*
 
-A trajectory is generated to adhere to multiple constraints on [timeOfArrival, Velocities, Orientation], and the toolbox will provide what it deems as the most efficient trajectory. To generate a trajectory the following steps must be executed:
+A trajectory is generated to adhere to multiple constraints on [Positions, timeOfArrival, Velocities, Orientation], and the toolbox will provide what it deems as the most efficient trajectory. To generate a trajectory the following steps must be executed:
 1. Set the constraint variables
 2. *Generate* constraints
 2. Set the trajectory variables
@@ -73,10 +73,16 @@ The first step is to set the variables which help define constraints for a speci
 | path_type                 | The type of trajectory to generate; *out-n-back* or *side-to-side*            |
 | turn_direction            | The direction of the first turn of the trajectory; *right* or *left*          |
 
-Proceed to run *Section 1* using the **run section** option, and make sure the variables are defined in the workspace.
+Proceed to run *Section 1* using the **run section** option, and make sure the variables are defined in the workspace alongside with the *oriented_path_constraints* object.
 
 ## Trajectory Generation - Step 2: Generate Constraints
+Note how the *oriented_path_constraints* object contrains the trajectory to a depth of **0** (all values along the 3rd column are 0) for all set-points. It is necessary to manually edit all depth values along the 3rd column in the *oriented_path_constraints* object prior to running *Section 2*. 
 
+Run *Section 2* using the **run section** option; this will create a *trajectory_constraints* object containing all necessary constraints [timeOfArrival, Positions, Velocities, Orientation]. 
+
+*Make sure no successive time stamps are equal to avoid error during trajectory generation.*
 
 ## Trajectory Generation - Step 3: Set the Trajectory Variables
+
+
 ## Trajectory Generation - Step 4: Create and Store the Trajectory

@@ -1,4 +1,4 @@
-# Trajectory Generator and Trajectory Publisher 
+# [Trajectory Generator](https://github.com/bjornrho/Navigation-brov2/tree/main/src/brov2_trajectory#trajectory-generator---getting-started) and [Trajectory Publisher](https://github.com/bjornrho/Navigation-brov2/tree/main/src/brov2_trajectory#trajectory-publisher---getting-started) 
 MATLAB scripts to help generate lawnmower trajectories and ROS2 package to publish the trajectories.
 
 ## Trajectory Generator - Getting Started
@@ -40,7 +40,17 @@ Run *Section 2* using the **run section** option; this will create a *trajectory
 *Make sure no successive time stamps are equal to avoid error during trajectory generation.*
 
 ## Trajectory Generator - Step 3: Set Trajectory Variables and Create/Store the Trajectory
+Now, set the trajectory variables consisting of:
 
+| Variable      | Description |
+| -----------   | ----------- |
+| trajectory_file_name          | The namce of the csv-file containing the trajectory to be created and stored  |
+| trajectory_period             | The inverted sample rate for the trajectory (must coincide with trajectory_period in trajectory_publisher)   |
+| live_plot                     | Bool allowing live plot as trajectory is generated.                           |  
+
+The live_plot feature is a practical tool to verify that the created trajectory is as desired. *Note that generating the trajectory will be as time consuming as executing the trajectory.*
+
+Run *Section 3* using the **run section** option; this will create and store the trajectory under the *./Navigation-brov2/trajectories/* directory.
 
 ## Trajectory Publisher - Getting Started
 The driver utilizes [NumPy](https://numpy.org/) and [progressbar2](https://progressbar-2.readthedocs.io/en/latest/), which both may be installed using [pip](https://pypi.org/project/pip/):

@@ -10,7 +10,8 @@ function path_constraints  = create_and_store_trajectory(trajectory_file_name,  
     %                             trajectory
     % trajectory_period         : The inverted sample rate for the
     %                             trajectory (must coincide with
-    %                             trajectory_period in trajectory_publisher
+    %                             trajectory_period in
+    %                             trajectory_publisher)
     % live_plot                 : Bool allowing live plot as trajectory is
     %                             generated
     % trajectory_constraints    : The constraints of which the trajectory

@@ -3,7 +3,7 @@ clear, clc;
 surge_velocity              = 1;
 turn_radius                 = 1;
 line_distance               = 10;
-number_of_lines             = 5;
+number_of_lines             = 7;
 turn_velocity_percentage    = 80;
 start_point                 = [0,0,0];
 start_angle                 = 0;
@@ -62,7 +62,7 @@ end
 
 %% Section 3: Create and store trajectory
 trajectory_file_name = 'example-trajectory.csv';
-trajectory_period = 0.1;
+trajectory_period = 0.01;
 live_plot = false;
 
 create_and_store_trajectory(trajectory_file_name,   ...

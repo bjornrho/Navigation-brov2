@@ -3,7 +3,7 @@ Sensor drivers, state estimation, trajectory generation/publishing, Text User In
 
 Generating Trajectory       |   Executing Trajectory
 :-------------------------: | :-------------------------:
-![Whops](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)  | ![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)
+![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)  | ![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_MC_cropped.mp4)
 
 
 

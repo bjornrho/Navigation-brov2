@@ -48,12 +48,12 @@ In order to set up 30fps live stream from camera to PC; run the shell scripts `s
 ## Hardware
 Hardware used in this project:
 
-* ROV: Blue Robotics BlueROV2 (heavy configuration)
-* Embedded Computer: Raspberry Pi 4 Model B
-* DVL: Waterlinked A50
-* IMU: Adafruit BNO055
-* Barometer: Blue Robotics BAR30
-* Side-scan sonar: Deepvision OSMEthernet Sonar System, 680 kHz transducers
+* **ROV:** Blue Robotics BlueROV2 (heavy configuration)
+* **Embedded Computer:** Raspberry Pi 4 Model B
+* **DVL:** Waterlinked A50
+* **IMU:** Adafruit BNO055
+* **Barometer:** Blue Robotics BAR30
+* **Side-scan sonar:** Deepvision OSMEthernet Sonar System, 680 kHz transducers
 
 
 ## License

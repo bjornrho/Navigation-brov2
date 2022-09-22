@@ -45,8 +45,8 @@ The packages/scripts rely on the following list of libraries and modules to func
 ## GStreamer Camera Stream
 In order to set up 30fps live stream from camera to PC; run the shell scripts `start_video_pc.sh` and `start_video_pi.sh` on PC and PI respectively.
 
-## Hardware
-Hardware used in this project:
+## Hardware Configuration
+The following hardware was used in this project:
 
 * **ROV:** Blue Robotics BlueROV2 (heavy configuration)
 * **Embedded Computer:** Raspberry Pi 4 Model B

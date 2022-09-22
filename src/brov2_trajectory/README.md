@@ -46,7 +46,7 @@ Now, set the trajectory variables consisting of:
 
 | Variable      | Description |
 | -----------   | ----------- |
-| trajectory_file_name          | The namce of the csv-file containing the trajectory to be created and stored  |
+| trajectory_file_name          | The namce of the csv-file containing the trajectory to be created and stored. Must end with ".csv"  |
 | trajectory_period             | The inverted sample rate for the trajectory (must coincide with trajectory_period in trajectory_publisher)   |
 | live_plot                     | Bool allowing live plot as trajectory is generated.                           |  
 

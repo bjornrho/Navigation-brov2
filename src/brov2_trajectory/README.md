@@ -4,11 +4,11 @@ MATLAB scripts to help generate lawnmower trajectories and ROS2 package to publi
 ## Trajectory Generator - Getting Started
 The trajectory generating script `trajectory_main_script.m` and the accompanying support functions are written using the [Sensor Fusion and Tracking Toolbox](https://se.mathworks.com/help/fusion/index.html?s_tid=CRUX_lftnav) in MATLAB. This toolbox must be installed. 
 
-Two types of lawnmower trajectories are supported, namely *out-n-back* and *side-to-side*.  
+Two types of lawnmower trajectories are supported, namely *side-to-side* and *out-n-back*.  
 
 side-to-side            |  out-n-back
 :-------------------------:|:-------------------------:
-![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/side-to-side-example.jpg)  |  ![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/out-n-back-example.jpg)
+![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/side-to-side-example.png)  |  ![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/out-n-back-example.jpg)
 
 A trajectory is generated to adhere to multiple constraints on [timeOfArrival, Positions, Velocities, Orientation], and the toolbox will provide what it deems as the most efficient trajectory. To generate a trajectory the following steps must be executed:
 1. Set the constraint variables and *generate* spatial constraints

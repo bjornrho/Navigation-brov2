@@ -15,6 +15,8 @@ A trajectory is generated to adhere to multiple constraints on [timeOfArrival, P
 2. Manually add desired depth values for all set-point constraints and *generate* time constraints 
 3. Set trajectory variables and *create/store* the trajectory
 
+***USER SHOULD BE AWARE**: The yaw set-points in a trajectory may drift off along the straight sections of a trajectory. This is an artifact of using the toolbox, and it has not been addressed for now.*
+
 ## Trajectory Generator - Step 1: Set Constraint Variables and Generate Spatial Constraints
 The first step is to set the variables in `trajectory_main_script.m` which help define constraints for a specific trajectory:
 

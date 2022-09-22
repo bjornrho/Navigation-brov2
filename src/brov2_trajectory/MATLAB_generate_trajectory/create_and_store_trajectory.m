@@ -81,7 +81,7 @@ function path_constraints  = create_and_store_trajectory(trajectory_file_name,  
     file_path = join(relative_path,"/");    
     writematrix(trajectory_matrix,file_path{1},'Delimiter','comma')
     
-    success_msg = '<strong> successfully created and stored in "/Navigation-brov2/trajectories" folder.</strong>\n';
-    fprintf(join([trajectory_file_name,success_msg]))
+    success_msg = " successfully created and stored in '/Navigation-brov2/trajectories' folder.";
+    disp("<strong>" + trajectory_file_name + success_msg + "</strong>")
     
 end

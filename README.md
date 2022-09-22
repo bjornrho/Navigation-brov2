@@ -1,7 +1,12 @@
 # Navigation for BlueROV2
 Sensor drivers, state estimation, trajectory generation/publishing, Text User Interface, and acoustic image processing pipeline for navigational purposes utilizing [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
 
-![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)
+side-to-side            |
+:-------------------------: |
+![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)  | 
+
+
+
 
 Consult separate README's for the usage of respective packages:
 * [**brov2_dvl**](src/brov2_dvl/): Driver for A50 DVL

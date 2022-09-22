@@ -6,7 +6,10 @@ Consult separate README's for the usage of respective packages:
 * [**brov2_sonar**](src/brov2_sonar/): Driver for OSM Ethernet Sonar System
 * [**brov2_barometer**](src/brov2_barometer/): Driver for Bar30 Pressure Sensor
 * [**brov2_gps**](src/brov2_gps/): Driver for Ultimate GPS
-* [**brov2_trajectory**](src/brov2_trajectory/): Trajectory Generator and Trajectory Publisher 
+* [**brov2_trajectory**](src/brov2_trajectory/): Trajectory Generator and Trajectory Publisher
+* [**brov2_qekf**](src/brov2_qekf/): WIP
+* [**brov2_sonar_processing**](src/brov2_sonar_processing/): WIP
+* [**brov2_tui**](src/brov2_tui/): WIP
 
 ## Library/Module Dependencies
 The packages/scripts rely on the following list of libraries and modules to function properly. 

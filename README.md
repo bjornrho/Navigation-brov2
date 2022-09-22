@@ -1,9 +1,9 @@
 # Navigation for BlueROV2
 Sensor drivers, state estimation, trajectory generation/publishing, Text User Interface, and acoustic image processing pipeline for navigational purposes utilizing [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html).
 
-side-to-side            |
-:-------------------------: |
-![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)  | 
+Generating Trajectory       |   Executing Trajectory
+:-------------------------: | :-------------------------:
+![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)  | ![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/circle_trajectory.gif)
 
 
 

@@ -23,7 +23,7 @@ import utility_functions
 class StateEstimateSubPub(Node):
 
     def __init__(self):
-        super().__init__('state_estimate_sub_pub')
+        super().__init__('qekf_state_estimator')
         # Declaring and getting parameters for QEKF
         self.declare_parameters(
             namespace='',

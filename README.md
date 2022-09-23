@@ -14,7 +14,7 @@ Consult separate README's for the usage of respective packages:
 * [**brov2_barometer**](src/brov2_barometer/): Driver for Bar30 Pressure Sensor
 * [**brov2_gps**](src/brov2_gps/): Driver for Ultimate GPS
 * [**brov2_trajectory**](src/brov2_trajectory/): Trajectory Generator and Trajectory Publisher
-* [**brov2_qekf**](src/brov2_qekf/): WIP
+* [**brov2_qekf**](src/brov2_qekf/): State Estimation Utilizing Quaternion Based Error-State Kalman Filter
 * [**brov2_sonar_processing**](src/brov2_sonar_processing/): WIP
 * [**brov2_tui**](src/brov2_tui/): WIP
 

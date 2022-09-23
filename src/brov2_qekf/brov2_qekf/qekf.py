@@ -11,8 +11,8 @@ class QEKF:
         """Initialization of the QEKF
 
         Args:
-            x_0                 (19 list) : Initial starting point of nominal state
-            dx_0             (18 ndarray) : Initial starting point of error-state  
+            x_0                 (19 list) : Initial values of nominal state
+            dx_0             (18 ndarray) : Initial values of error-state  
             P_0             (18x18 array) : Initial covariance of error-state
             std_a                         : Accelerometer Gaussian noise
             std_gyro                      : Gyrometer Gaussian noise

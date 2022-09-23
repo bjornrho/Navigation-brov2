@@ -80,7 +80,7 @@ class StateEstimateSubPub(Node):
 
         # Initializing orientation offset parameters
         self.declare_parameter('orientation_offset', value=[1.0, 0.0, 0.0, 0.0])
-        self.srv_orientation = self.create_service(Trigger, 'brov2_qekf/set_orient_offset', self.srv_set_yaw_offset)
+        self.srv_orientation = self.create_service(Trigger, 'brov2_qekf/set_yaw_offset', self.srv_set_yaw_offset)
         self.srv_filter_reset = self.create_service(Trigger, 'brov2_qekf/reset_qekf', self.srv_reset_qekf)
         self.srv_NIS_logging = self.create_service(Trigger, 'brov2_qekf/start_stop_NIS_logging', self.start_stop_NIS_logging)
 

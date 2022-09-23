@@ -1,12 +1,13 @@
 /state_estimate_sub_pub:
   ros__parameters:
     x_0: [0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    std_a: 0.0
-    std_gyro: 0.0
-    std_dvl: 0.0
-    std_depth: 0.0
-    std_a_bias: 0.0
-    std_gyro_bias: 0.0
+    std_a: 0.69728
+    std_gyro: 0.011393
+    std_dvl: 0.01
+    std_depth: 0.0024678
+    std_orientation: 0.00091673
+    std_a_bias: 0.21396
+    std_gyro_bias: 0.014258
     dvl_offset: [-0.020, -0.095, 0.133]
     barometer_offset: [-0.175, -0.015, -0.05]
     imu_offset: [0.057, 0.027, -0.025]

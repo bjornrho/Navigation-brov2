@@ -42,3 +42,16 @@ ros2 run brov2_qekf brov2_qekf_exe --ros-args --params-file src/brov2_qekf/param
 The default values are a combination of values found through experimental measurements and the respective sensor data sheet, whichever proved to be the largest. See thesis for further explanation.
 
 *Note that the A50 DVL provides a covariance matrix accompanying velocity measurements. Hence, **std_dvl** is not actually used, but it is added for the sake of completeness.*
+
+## Node Services
+The following three services have been implemented to make the filter easier to use and analyze in real-life scenarios:
+| Service      | Description |
+| ----------- | ----------- |
+| /brov2_qekf/set_yaw_offset            | Storing yaw offset value making the current yaw value 'zero'.     |
+| /brov2_qekf/reset_qekf                | Re-initializing the filter without the need to kill and start the `qekf_state_estimator` node again.|
+| /brov2_qekf/start_stop_NIS_logging    | Start and stop logging of Normalized Innovation Squared (NIS). Logged files can be found in the *./brov2_qekf/NIS_values/* directory.  |
+
+Run a service using:
+```
+ros2 service call *insert service* std_srvs/srv/Trigger
+``` 

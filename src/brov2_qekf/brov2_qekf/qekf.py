@@ -5,9 +5,6 @@ import sys
 sys.path.append('utility_functions')
 import utility_functions
 
-
-# Implementation of the Quaternion based error-state Kalman Filter from Joan Solà's article: https://arxiv.org/abs/1711.02508
-# and the qekf implementation from FRoSt Lab available at https://bitbucket.org/frostlab/underwateriekf/src/main/
 class QEKF:
     def __init__(self, x_0, dx_0, P_0, std_a, std_gyro, std_dvl, std_depth, std_orientation, std_a_bias, std_gyro_bias, 
                  dvl_offset, barometer_offset, imu_offset):

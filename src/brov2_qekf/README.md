@@ -1,4 +1,4 @@
-# State Estimation Utilizing Quaternion Based Error-State Kalman Filter
+# State Estimation using Quaternion based Error-State Kalman Filter
 State estimation through implementation of [Joan Solà's formulation](https://arxiv.org/abs/1711.02508) of a quaternion based error-state Kalman Filter. The filter fuses measurements of *linear velocity* measurements from the DVL, *depth* measurements from the pressure sensor, *linear acceleration* and *angular velocity* in addition to *orientation estimates* from the IMU.
 
 ## Getting Started

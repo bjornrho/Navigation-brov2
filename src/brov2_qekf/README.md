@@ -39,6 +39,6 @@ ros2 run brov2_qekf brov2_qekf_exe --ros-args --params-file src/brov2_qekf/param
 * **barometer_topic_name**: The name of the topic where pressure sensor readings are published; default="barometer/barometer_data"
 * **state_estimate_topic_name**: The name of the topic where state estimates are published; default="/CSEI/observer/odom"
 
-The default values are a combination of values found through experimental measurements and the respective sensor data sheet, whichever proved to be largest. See thesis for further explanation.
+The default values are a combination of values found through experimental measurements and the respective sensor data sheet, whichever proved to be the largest. See thesis for further explanation.
 
 *Note that the A50 DVL provides a covariance matrix accompanying velocity measurements. Hence, **std_dvl** is not actually used, but it is added for the sake of completeness.*

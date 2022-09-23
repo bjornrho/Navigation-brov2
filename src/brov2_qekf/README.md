@@ -1,7 +1,10 @@
 # State Estimation using Quaternion based Error-State Kalman Filter
 State estimation through implementation of [Joan Solà's formulation](https://arxiv.org/abs/1711.02508) of a quaternion based error-state Kalman Filter. The filter fuses *linear velocity* measurements from the DVL, *depth* measurements from the pressure sensor, *linear acceleration* and *angular velocity* measurements in addition to *orientation estimates* from the IMU.
 
-![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/qekf_block_diagram.jpg)
+<p align="center">
+  <img src="https://github.com/bjornrho/Navigation-brov2/blob/main/doc/qekf_block_diagram.jpg" />
+</p>
+
 
 ## Getting Started
 The driver utilizes [NumPy](https://numpy.org/), which may be installed using [pip](https://pypi.org/project/pip/):

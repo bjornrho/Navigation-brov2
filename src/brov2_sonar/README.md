@@ -19,7 +19,7 @@ Configuring the settings can be done through making changes to the [node paramet
 ```
 ros2 run brov2_sonar brov2_sonar_exe --ros-args --params-file src/brov2_sonar/params/params.yaml
 ```
-* **sonar_topic_name**: The name of the topic where pressure sensor readings are published; default="barometer_data"
+* **sonar_topic_name**: The name of the topic where raw sonar data is published; default="sonar_data"
 * **sonar_range**: Sonar range in (meters), the expected distance to the sea floor during a mission; default=30
 * **sonar_number_of_samples**: Number of samples per active side and ping. Should coincide with pipeline and custom interface; default=500
 * **sonar_left_active**: Bool activating the left side transducer; default=true

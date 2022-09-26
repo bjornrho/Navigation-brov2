@@ -47,4 +47,4 @@ ros2 run brov2_sonar_processing brov2_sonar_processing_exe --ros-args --params-f
 
 
 ## Interpolation and filtering
-The various interpolation and filtering employed can be tweaked through numerous parameters. The current settings are a result of limited testing due to time constraints. Hence, the user is advised to test different parameters in the *knn.jl* script, as well as various interpolation techniques using SciPy's griddata() function in *sonar_processing_node.py*.
+The interpolation and filtering techniques employed can be tweaked through numerous parameters. The current settings are a result of limited testing due to time constraints. Hence, the user is advised to test different parameters in the *knn.jl* script, as well as various interpolation techniques using SciPy's griddata() function in *sonar_processing_node.py*.

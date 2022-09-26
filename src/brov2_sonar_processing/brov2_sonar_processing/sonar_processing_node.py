@@ -31,14 +31,16 @@ class SonarProcessingNode(Node):
                                 parameters=[('sonar_data_topic_name', 'sonar_data'),
                                             ('dvl_vel_topic_name', 'dvl/velocity_estimate'),
                                             ('qekf_state_estimate_topic_name', '/CSEI/observer/odom'),
+                                            ('scan_lines_per_stored_frame', 100),
                                             ('processing_period', 0.0001),
                                             ('number_of_samples_sonar', 500),
                                             ('range_sonar', 30)])
                                             
-        (sonar_data_topic_name, dvl_vel_topic_name, qekf_state_estimate_topic_name, 
+        (sonar_data_topic_name, dvl_vel_topic_name, qekf_state_estimate_topic_name, self.scan_lines_per_stored_frame, 
         processing_period, number_of_samples_sonar, range_sonar) = self.get_parameters(['sonar_data_topic_name', 
                                                                                         'dvl_vel_topic_name',
                                                                                         'qekf_state_estimate_topic_name',
+                                                                                        'scan_lines_per_stored_frame'
                                                                                         'processing_period',
                                                                                         'number_of_samples_sonar',
                                                                                         'range_sonar'])
@@ -191,9 +193,9 @@ class SonarProcessingNode(Node):
         
         # Interpolate and construct frame if sufficient amount of swaths has arrived
         buffer_size = len(self.buffer_processed_coordinate_array)
-        if buffer_size%100 == 0 and buffer_size != 0:
+        if buffer_size%self.scan_lines_per_stored_frame.value == 0 and buffer_size != 0:
             _,_,_,_,_,_,_,_,_ = self.construct_frame()
-            self.buffer_processed_coordinate_array = self.buffer_processed_coordinate_array[50:]
+            self.buffer_processed_coordinate_array = self.buffer_processed_coordinate_array[int(self.scan_lines_per_stored_frame.value/2):]
 
         swath_structure = self.buffer_unprocessed_swaths[0]
 

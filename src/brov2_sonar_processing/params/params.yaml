@@ -3,6 +3,7 @@
     sonar_data_topic_name: "sonar_data"
     dvl_vel_topic_name: "dvl/velocity_estimate"
     qekf_state_estimate_topic_name: "/CSEI/observer/odom"
+    scan_lines_per_stored_frame: 100
     processing_period: 0.0001
     number_of_samples_sonar: 500
     range_sonar: 30

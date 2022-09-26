@@ -2,7 +2,9 @@
 Processing scan lines from side-scan sonar through an image construction pipeline. The pipeline performs echo intensity
 normalization, blind zone removal, slant range correction, and geometric correction, in addition to interpolation and filtering. See the thesis for details.
 
-![](https://github.com/bjornrho/Navigation-brov2/blob/main/doc/image_construction_pipeline.jpg)
+<p align="center">
+  <img src="https://github.com/bjornrho/Navigation-brov2/blob/main/doc/image_construction_pipeline.jpg"/>
+</p>
 
 ## Getting Started
 The driver utilizes [NumPy](https://numpy.org/), [SciPy](https://scipy.org/), and [Pandas](https://pandas.pydata.org/), which may be installed using [pip](https://pypi.org/project/pip/):

@@ -2,7 +2,7 @@
 State estimation through implementation of [Joan Solà's formulation](https://arxiv.org/abs/1711.02508) of a quaternion based error-state Kalman Filter. The filter fuses *linear velocity* measurements from the DVL, *depth* measurements from the pressure sensor, *linear acceleration* and *angular velocity* measurements in addition to *orientation estimates* from the IMU.
 
 <p align="center">
-  <img src="https://github.com/bjornrho/Navigation-brov2/blob/main/doc/qekf_block_diagram.jpg" width="500" height="285"/>
+  <img src="https://github.com/bjornrho/Navigation-brov2/blob/main/doc/qekf_block_diagram.svg"/>
 </p>
 
 

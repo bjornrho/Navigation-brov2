@@ -3,7 +3,7 @@ Processing scan lines from side-scan sonar through an image construction pipelin
 normalization, blind zone removal, slant range correction, and geometric correction, in addition to interpolation and filtering. See the thesis for details.
 
 <p align="center">
-  <img src="https://github.com/bjornrho/Navigation-brov2/blob/main/doc/image_construction_pipeline.jpg"/>
+  <img src="https://github.com/bjornrho/Navigation-brov2/blob/main/doc/image_construction_pipeline.svg"/>
 </p>
 
 ## Getting Started

@@ -146,6 +146,23 @@ class SonarProcessingNode(Node):
 
         return coordinate_array
 
+    def store_processed_frames(self, u, v, intensity_values, knn_intensity_mean, knn_filtered_image):
+        # Storing coordinates and intensity values in csv
+        raw_file_name = 'src/brov2_sonar_processing/processed_frames/raw_' + str(self.processed_frame_counter) + '.csv'
+        knn_file_name = 'src/brov2_sonar_processing/processed_frames/knn_' + str(self.processed_frame_counter) + '.csv'
+        knn_filtered_file_name = 'src/brov2_sonar_processing/processed_frames/knn_filtered_' + str(self.processed_frame_counter) + '.csv'
+        
+        raw_df = pd.DataFrame(list(zip(*[u, v, intensity_values]))).add_prefix("Col")
+        knn_df = pd.DataFrame(knn_intensity_mean).add_prefix("Col")
+        knn_filtered_df = pd.DataFrame(knn_filtered_image).add_prefix("Col")
+        
+        raw_df.to_csv(raw_file_name, index=False)
+        knn_df.to_csv(knn_file_name, index=False)
+        knn_filtered_df.to_csv(knn_filtered_file_name, index=False)
+        
+        print("Frame #" + str(self.processed_frame_counter) + " stored.")
+        self.processed_frame_counter += 1
+
     def construct_frame(self):
         u,v,intensity_values = [],[],[]
         for coordinate_array in self.buffer_processed_coordinate_array:
@@ -197,21 +214,3 @@ class SonarProcessingNode(Node):
         # Add element to processed and remove from unprocessed buffer
         self.buffer_processed_coordinate_array.append(processed_coordinate_array)
         self.buffer_unprocessed_swaths.pop(0)
-
-
-    def store_processed_frames(self, u, v, intensity_values, knn_intensity_mean, knn_filtered_image):
-        # Storing coordinates and intensity values in csv
-        raw_file_name = 'src/brov2_sonar_processing/processed_frames/raw_' + str(self.processed_frame_counter) + '.csv'
-        knn_file_name = 'src/brov2_sonar_processing/processed_frames/knn_' + str(self.processed_frame_counter) + '.csv'
-        knn_filtered_file_name = 'src/brov2_sonar_processing/processed_frames/knn_filtered_' + str(self.processed_frame_counter) + '.csv'
-        
-        raw_df = pd.DataFrame(list(zip(*[u, v, intensity_values]))).add_prefix("Col")
-        knn_df = pd.DataFrame(knn_intensity_mean).add_prefix("Col")
-        knn_filtered_df = pd.DataFrame(knn_filtered_image).add_prefix("Col")
-        
-        raw_df.to_csv(raw_file_name, index=False)
-        knn_df.to_csv(knn_file_name, index=False)
-        knn_filtered_df.to_csv(knn_filtered_file_name, index=False)
-        
-        print("Frame #" + str(self.processed_frame_counter) + " stored.")
-        self.processed_frame_counter += 1

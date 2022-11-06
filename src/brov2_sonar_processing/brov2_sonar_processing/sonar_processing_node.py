@@ -13,7 +13,6 @@ from scipy import interpolate
 
 from brov2_sonar_processing import side_scan_data as ssd
 from brov2_sonar_processing import cubic_spline_regression as csr
-from brov2_sonar_processing import plot_utils as pu
 
 from julia.api import Julia
 jl = Julia(compiled_modules=False)
@@ -40,7 +39,7 @@ class SonarProcessingNode(Node):
         processing_period, number_of_samples_sonar, range_sonar) = self.get_parameters(['sonar_data_topic_name', 
                                                                                         'dvl_vel_topic_name',
                                                                                         'qekf_state_estimate_topic_name',
-                                                                                        'scan_lines_per_stored_frame'
+                                                                                        'scan_lines_per_stored_frame',
                                                                                         'processing_period',
                                                                                         'number_of_samples_sonar',
                                                                                         'range_sonar'])
@@ -72,10 +71,10 @@ class SonarProcessingNode(Node):
         if not self.state_initialized:
             return
         # Right transducer data handling
-        transducer_raw_right = sonar_msg.data_zero
+        transducer_raw_right = sonar_msg.data_one
         self.current_swath.swath_right = [int.from_bytes(byte_val, "big") for byte_val in transducer_raw_right] # Big endian
         # Left transducer data handling
-        transducer_raw_left = sonar_msg.data_one
+        transducer_raw_left = sonar_msg.data_zero
         self.current_swath.swath_left = [int.from_bytes(byte_val, "big") for byte_val in transducer_raw_left]
         # Adding related state and altitude of platform for processing purpose
         self.current_swath.state, self.current_swath.altitude = self.current_state, self.current_altitude
@@ -140,10 +139,10 @@ class SonarProcessingNode(Node):
         coordinate_array[4:] = np.array([swath_structure.swath_right, swath_structure.swath_left])
 
         for s in range(number_of_samples):
-            x_right = -(pos_x  + np.sin(psi)*s*res + np.sin(theta)*np.cos(psi)*altitude)
-            y_right = (-pos_y  + np.cos(psi)*s*res - np.sin(theta)*np.sin(psi)*altitude)
-            x_left  = -(pos_x  - np.sin(psi)*s*res + np.sin(theta)*np.cos(psi)*altitude)
-            y_left  = (-pos_y  - np.cos(psi)*s*res - np.sin(theta)*np.sin(psi)*altitude)
+            x_right = (pos_x  + np.sin(psi)*s*res + np.sin(theta)*np.cos(psi)*altitude)
+            y_right = -(-pos_y  + np.cos(psi)*s*res - np.sin(theta)*np.sin(psi)*altitude)
+            x_left  = (pos_x  - np.sin(psi)*s*res + np.sin(theta)*np.cos(psi)*altitude)
+            y_left  = -(-pos_y  - np.cos(psi)*s*res - np.sin(theta)*np.sin(psi)*altitude)
             coordinate_array[:4,s] = np.array([x_right,x_left,y_right,y_left])
 
         return coordinate_array
@@ -172,19 +171,18 @@ class SonarProcessingNode(Node):
             v.extend(coordinate_array[2:4].flatten())               
             intensity_values.extend(coordinate_array[5].flatten())
             intensity_values.extend(coordinate_array[4].flatten())
-        u_temp = [element * -1 for element in u]
-        u_interval = np.linspace(min(u_temp),max(u_temp),int(max(u_temp)-min(u_temp)))
+        u_interval = np.linspace(min(u),max(u),int(max(u)-min(u)))
         v_interval = np.linspace(min(v),max(v),int(max(v)-min(v)))
         U,V = np.meshgrid(u_interval,v_interval)
 
         ### Attempt various methods [linear, nearest, spline] using griddata if desired ###
-        linear_frame = interpolate.griddata((v,u_temp), intensity_values, (V.T,U.T), method='linear')
+        linear_frame = interpolate.griddata((v,u), intensity_values, (V.T,U.T), method='linear')
 
         # Or Knn method as described in hogstad2022sidescansonar
-        knn_intensity_mean, knn_intensity_variance, knn_filtered_image = knn(self.side_scan_data.res, u_temp, v, intensity_values)
+        knn_intensity_mean, knn_intensity_variance, knn_filtered_image = knn(self.side_scan_data.res, u, v, intensity_values)
         self.store_processed_frames(u, v, intensity_values, knn_intensity_mean, knn_filtered_image)
     
-        return u, v, intensity_values, linear_frame, int(min(u_temp)), int(min(v)), knn_intensity_mean, knn_intensity_variance, knn_filtered_image
+        return u, v, intensity_values, linear_frame, int(min(u)), int(min(v)), knn_intensity_mean, knn_intensity_variance, knn_filtered_image
 
     def run_full_pre_processing_pipeline(self):
         # Don't process if buffer is empty

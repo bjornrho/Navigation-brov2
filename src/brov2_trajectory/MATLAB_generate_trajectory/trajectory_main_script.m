@@ -1,15 +1,15 @@
 %% Section 1: Generate supported path [out-n-back, side-to-side]
 clear, clc;
-surge_velocity              = 1;
+surge_velocity              = 0.4;
 turn_radius                 = 1;
-line_distance               = 10;
-number_of_lines             = 7;
-turn_velocity_percentage    = 80;
+line_distance               = 0.01;
+number_of_lines             = 2;
+turn_velocity_percentage    = 100;
 start_point                 = [0,0,0];
 start_angle                 = 0;
 start_time                  = 0;
 end_point                   = [0,0,0];
-path_type                   = "side-to-side";
+path_type                   = "out-n-back";
 turn_direction              = "right";
 
 
@@ -63,7 +63,7 @@ end
 %% Section 3: Create and store trajectory
 trajectory_file_name = 'example-trajectory.csv';
 trajectory_period = 0.01;
-live_plot = false;
+live_plot = true;
 
 create_and_store_trajectory(trajectory_file_name,   ...
                             trajectory_period,      ...

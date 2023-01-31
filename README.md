@@ -1,5 +1,5 @@
 # Navigation for BlueROV2
-Sensor drivers, state estimation, trajectory generation/publishing, Text User Interface, and acoustic image processing pipeline for navigational purposes utilizing [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html). Master thesis is publically available [here](https://hdl.handle.net/11250/3032962).
+Sensor drivers, state estimation, trajectory generation/publishing, Text User Interface, and acoustic image processing pipeline for navigational purposes utilizing [ROS2 Galactic](https://docs.ros.org/en/ros2_documentation/galactic/index.html). Master thesis is publicly available [here](https://hdl.handle.net/11250/3032962).
 
 Generated Trajectory       |   Executed Trajectory
 :-------------------------: | :-------------------------:
